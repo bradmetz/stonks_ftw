@@ -12,5 +12,9 @@ Historic Dividend data based on ticker symbols.  Also provides PE, PB, close pri
 API for quote data from Alpha Vantage (confirmed - TSE: append for Can quotes) - https://www.alphavantage.co/documentation/#time-series-data
 Alpha Vantage also accessible through the pandas_datareader class directly.
 
-# Tools
+# Tools created for this project
+
+collector.py - My collection of python code blocks to create my data set.  Outputs my data sets to csv for future processing in the pipeline.  I have also left my dead end code blocks in there as well.  
+
+# References
 Neat looking webscraper - simple scraper.io
