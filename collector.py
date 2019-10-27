@@ -147,9 +147,16 @@ df.to_csv('./datasets/pandas_div_history_nasdaq.csv')
 # dividend history data points.
 
 import pandas as pd
-dfs = pd.read_html('https://dividendhistory.org/payout/tsx/AW_UN/')
-df = dfs[0]
+dfs = pd.read_html('https://dividendhistory.org/payout/tsx/CM/')
+
+# small decision block to deal with optional anoucements header on some pages
+if len(dfs)==3:
+    df = dfs[0]
+elif len(dfs)==4:
+    df = dfs[1]
+else:
+    print('something else going on here')
 # dropthe first two rows since they are unconfirmed
 # drop the last column (i can calculate div increase percentages myself) 
 dfout = df.iloc[2:, :-1]
-df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/pandas_div_history_AW_UN.csv')
+df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/pandas_div_history_CM.csv')
