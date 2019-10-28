@@ -151,7 +151,9 @@ import pandas as pd
 # load tickers from previous summary csv
 #tried loc with header 'Symbol'.  got errors finding Symbol
 # not sure why but switched to integer index instead
-dfs = pd.read_csv('./datasets/pandas_div_history_tsx.csv')
+# little quirk = kee_default_na needed to prevent the ticker value NA 
+# from being converted into an nan
+dfs = pd.read_csv('./datasets/pandas_div_history_tsx.csv', keep_default_na=False)
 #ticks = dfs.loc[["Symbol"]]  -- getting errors on this
 ticks = dfs.iloc[:, 1:2]
 #list(ticks.columns.tolist())
@@ -184,4 +186,94 @@ for (sym_index, sym_val) in ticks.iteritems():
 # dropthe first two rows since they are unconfirmed
 # drop the last column (i can calculate div increase percentages myself) 
         dfout = df.iloc[2:, :-1]
-        df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/pandas_div_history_{0}.csv'.format(sym))
+        df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/tsx/pandas_div_history_{0}.csv'.format(sym))
+
+# code to pull down nyse per ticker dividend history
+# and save to nyse data directory 1 file per company
+
+import pandas as pd
+
+# load tickers from previous summary csv
+#tried loc with header 'Symbol'.  got errors finding Symbol
+# not sure why but switched to integer index instead
+# little quirk = kee_default_na needed to prevent the ticker value NA 
+# from being converted into an nan
+dfs = pd.read_csv('./datasets/pandas_div_history_nyse.csv', keep_default_na=False)
+#ticks = dfs.loc[["Symbol"]]  -- getting errors on this
+ticks = dfs.iloc[:, 1:2]
+#list(ticks.columns.tolist())
+
+##   print(col)
+
+# loop throuigh all tickers and create new csv for each div stock
+
+for (sym_index, sym_val) in ticks.iteritems():
+
+    #print("sym col", sym_index)
+    #print("try one", sym_val.values[0])
+    #print("sym_val", sym_val.values)
+    # learned i needed to go through a second loop to get at the string values for 
+    # tickers so i can use them to create the individual stock page URLs
+    
+    #cycle through all tickers and pull down div history and store in data folder
+    for sym in sym_val.values:
+        sym = sym.replace('.', '_')
+        print("https://dividendhistory.org/payout/{0}".format(sym))
+        dfs = pd.read_html('https://dividendhistory.org/payout/{0}/'.format(sym))
+
+# small decision block to deal with optional anoucements header on some pages
+        if len(dfs)==3:
+            df = dfs[0]
+        elif len(dfs)==4:
+            df = dfs[1]
+        else:
+            print('something else going on here')
+# dropthe first two rows since they are unconfirmed
+# drop the last column (i can calculate div increase percentages myself) 
+        dfout = df.iloc[2:, :-1]
+        df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/nyse/pandas_div_history_{0}.csv'.format(sym))
+
+# code to pull down all nasdaq individual dividend history and save to 
+# individual csv per company
+
+import pandas as pd
+
+# load tickers from previous summary csv
+#tried loc with header 'Symbol'.  got errors finding Symbol
+# not sure why but switched to integer index instead
+# little quirk = kee_default_na needed to prevent the ticker value NA 
+# from being converted into an nan
+dfs = pd.read_csv('./datasets/pandas_div_history_nasdaq.csv', keep_default_na=False)
+#ticks = dfs.loc[["Symbol"]]  -- getting errors on this
+ticks = dfs.iloc[:, 1:2]
+#list(ticks.columns.tolist())
+
+##   print(col)
+
+# loop throuigh all tickers and create new csv for each div stock
+
+for (sym_index, sym_val) in ticks.iteritems():
+
+    #print("sym col", sym_index)
+    #print("try one", sym_val.values[0])
+    #print("sym_val", sym_val.values)
+    # learned i needed to go through a second loop to get at the string values for 
+    # tickers so i can use them to create the individual stock page URLs
+    
+    #cycle through all tickers and pull down div history and store in data folder
+    for sym in sym_val.values:
+        sym = sym.replace('.', '_')
+        print("https://dividendhistory.org/payout/{0}".format(sym))
+        dfs = pd.read_html('https://dividendhistory.org/payout/{0}/'.format(sym))
+
+# small decision block to deal with optional anoucements header on some pages
+        if len(dfs)==3:
+            df = dfs[0]
+        elif len(dfs)==4:
+            df = dfs[1]
+        else:
+            print('something else going on here')
+# dropthe first two rows since they are unconfirmed
+# drop the last column (i can calculate div increase percentages myself) 
+        dfout = df.iloc[2:, :-1]
+        df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/nasdaq/pandas_div_history_{0}.csv'.format(sym))
