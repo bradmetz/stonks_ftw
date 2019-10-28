@@ -14,7 +14,8 @@ Alpha Vantage also accessible through the pandas_datareader class directly.
 
 # Tools created for this project
 
-collector.py - My collection of python code blocks to create my data set.  Outputs my data sets to csv for future processing in the pipeline.  I have also left my dead end code blocks in there as well.  
+collector.py - My collection of python code blocks to create my data set.  Outputs my data sets to csv for future processing in the pipeline.  I have also left my dead end code blocks in there as well.  There is currently support for TSX, NYSE, and NASDAQ.  File structure needs to be created manually (may add support to automatically create this in the future).  
+I thought about pulling down price on day of dividend payment for each ticker but with the call limits on Alpha Vanatage may make pulling down full histories a better option. Will look at adding a collector for histories first. 
 
 # References
 Neat looking webscraper - simple scraper.io
