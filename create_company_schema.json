@@ -1,0 +1,7 @@
+{
+     "properties":{
+			"ticker":{"type":"keyword"},
+			"company name":{"type":"text"},
+			"next ex-div":{"type":"date"}
+		  }
+}
