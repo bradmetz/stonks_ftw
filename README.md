@@ -23,6 +23,16 @@ I got my ELK stack up and running which has allowed me to learn a bit about the 
 
 Based on my initial thinking in my data collection so far, I am going to try and setup a Logstash pipeline to ingest my collected data into my Elastic instance.  Other options included pushing the updates straight to Elastic using curl (or likely a python HTTP client API), or building my own Beats data shipper.  For proof of concept it looks like logstash pipeline is the quickest route to success. 
 
+Started playing with Elasticsearch getting indices setup.  The following can be used to create indices to use with the project using curl:
+
+Create index for companies
+curl -XPUT 'http://192.168.0.20:9200/stonks_ftw' -H 'Content-Type: application/json' -d'{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 0}}}'
+
+Map fields in companies type
+curl -XPUT 'http://192.168.0.20:9200/stonks_ftw/companies/_mapping?include_type_name=true' -H 'Content-Type: application/json' -d @"create_company_schema.json"
+
+Next - write up python code to load all tickers scrapted using collector. 
+
 Next step:  Give some thought for how to present the data to the pipeline from the collector to get into Elastic.  Initial thinking is to ingest daily closing price with dividend yield calculated based on collected current dividends.  This would mean creating a pipeline for each ticker symbol (since current flow dumps price history for each ticker into their own file).  Better option for pipeline maybe to have a single file with ticker as a field.  
 
 # References
