@@ -31,7 +31,7 @@ curl -XPUT 'http://192.168.0.20:9200/stonks_ftw' -H 'Content-Type: application/j
 Map fields in companies type
 curl -XPUT 'http://192.168.0.20:9200/stonks_ftw/companies/_mapping?include_type_name=true' -H 'Content-Type: application/json' -d @"create_company_schema.json"
 
-Next - write up python code to load all tickers scrapted using collector. 
+Wrote up python code to populate my companies type with data scraped from each market table on dividendhistory.org.  Now need to populate dividend histories for each company.  
 
 Next step:  Give some thought for how to present the data to the pipeline from the collector to get into Elastic.  Initial thinking is to ingest daily closing price with dividend yield calculated based on collected current dividends.  This would mean creating a pipeline for each ticker symbol (since current flow dumps price history for each ticker into their own file).  Better option for pipeline maybe to have a single file with ticker as a field.  
 
