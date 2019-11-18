@@ -11,7 +11,7 @@ Created on Wed Oct 23 20:46:13 2019
 # remember what happened.
 
 
-''' ---------------------- ticker collector --------------------'''
+''' ---------------------- ticker collector (run once: Initialization) --------------------'''
 
 # so after fighting with building an HTML parser ( code block below) to extact the TSX dividend 
 # from dividendhsitory.org, i found the method in pandas to pull down an
@@ -22,23 +22,22 @@ Created on Wed Oct 23 20:46:13 2019
 # use this section to initialize index for tickers and company names
 
 import pandas as pd
-dfs = pd.read_html('https://dividendhistory.org/tsx')
+dfs = pd.read_html('https://dividendhistory.org/tsx', keep_default_na=False, header=0, index_col=0)
 df = dfs[0]
 #write out to csv for future use
 df.to_csv('./datasets/pandas_div_history_tsx.csv')
 
 # repeat to pull down the NYSE dividend stock list
-dfs = pd.read_html('https://dividendhistory.org/nyse')
+dfs = pd.read_html('https://dividendhistory.org/nyse', keep_default_na=False, header=0, index_col=0)
 df = dfs[0]
 df.to_csv('./datasets/pandas_div_history_nyse.csv')
-
-dfs = pd.read_html('https://dividendhistory.org/nasdaq')
+#repeat to pull down NASDAQ 
+dfs = pd.read_html('https://dividendhistory.org/nasdaq', keep_default_na=False, header=0, index_col=0)
 df = dfs[0]
 df.to_csv('./datasets/pandas_div_history_nasdaq.csv')
 
 
 ''' --------------Code to write out records to elastic search --------------'''
-# write out type to Elastic Index
 '''
 this section is used to push all tickers, company names, and next ex-dev to 
 the Elastic search instance.  I used cURL to create the index (see readme)
@@ -48,95 +47,121 @@ the Elastic search instance.  I used cURL to create the index (see readme)
             ticker : string
             company name : string
             next_exdiv : date 
-            market: string (one of TSX, NYSE, NASDAQ '''
-            
+            market: string (one of TSX, NYSE, NASDAQ 
 
+assumes an index created:  i did this with cURL:
+
+Create index for companies curl -XPUT 'http://192.168.0.20:9200/stonks_ftw' 
+    -H 'Content-Type: application/json' 
+    -d'{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 0}}}'
+
+Map fields in companies type curl -XPUT 'http://192.168.0.20:9200/stonks_ftw/companies/_mapping?include_type_name=true' 
+    -H 'Content-Type: application/json' 
+    -d @"create_company_schema.json"
+                
+'''
 # write all rows is dataframe as documents in companies index previously created
 # this section performs TSX ticker import
-    from datetime import datetime
-    from elasticsearch import Elasticsearch
-    import pandas as pd
+from datetime import datetime
+from elasticsearch import Elasticsearch
+#import pandas as pd
     
-    df = pd.read_csv('./datasets/pandas_div_history_tsx.csv', keep_default_na=False)
-    for index, row in df.iterrows():
-        #print(index, row)
-        print('Symbol: {0} \n Company Name: {1} \n Next Ex-div: {2}'.format(row['Symbol'], row['Company'], row['Next Ex-div Date']))
-        es = Elasticsearch("http://192.168.0.20:9200")
-        es.info()
-        es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"TSX"})
+df = pd.read_csv('./datasets/pandas_div_history_tsx.csv', keep_default_na=False)
+for index, row in df.iterrows():
+    #print(index, row)
+    print('Symbol: {0} \n Company Name: {1} \n Next Ex-div: {2}'.format(row['Symbol'], row['Company'], datetime.strptime(row['Next Ex-div Date'], "%Y-%m-%d").date()))
+    es = Elasticsearch("http://192.168.0.20:9200")
+    es.info()
+    es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"TSX"})
 
 # this section performs NYSE ticker import
-    from datetime import datetime
-    from elasticsearch import Elasticsearch
-    import pandas as pd
+from datetime import datetime
+from elasticsearch import Elasticsearch
+import pandas as pd
     
-    df = pd.read_csv('./datasets/pandas_div_history_nyse.csv', keep_default_na=False)
-    for index, row in df.iterrows():
-        #print(index, row)
-        print('Symbol: {0} \n Company Name: {1} \n Next Ex-div: {2}'.format(row['Symbol'], row['Company'], row['Next Ex-div Date']))
-        es = Elasticsearch("http://192.168.0.20:9200")
-        es.info()
-        es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"NYSE"})
+df = pd.read_csv('./datasets/pandas_div_history_nyse.csv', keep_default_na=False)
+for index, row in df.iterrows():
+    #print(index, row)
+    print('Symbol: {0} \n Company Name: {1} \n Next Ex-div: {2}'.format(row['Symbol'], row['Company'], row['Next Ex-div Date']))
+    es = Elasticsearch("http://192.168.0.20:9200")
+    es.info()
+    es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"NYSE"})
 
 # this section performs NASDAQ ticker import
-    from datetime import datetime
-    from elasticsearch import Elasticsearch
-    import pandas as pd
+from datetime import datetime
+from elasticsearch import Elasticsearch
+import pandas as pd
     
-    df = pd.read_csv('./datasets/pandas_div_history_nasdaq.csv', keep_default_na=False)
-    for index, row in df.iterrows():
-        #print(index, row)
-        print('Symbol: {0} \n Company Name: {1} \n Next Ex-div: {2}'.format(row['Symbol'], row['Company'], row['Next Ex-div Date']))
-        es = Elasticsearch("http://192.168.0.20:9200")
-        es.info()
-        es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"NASDAQ"})
-
-
-
+df = pd.read_csv('./datasets/pandas_div_history_nasdaq.csv', keep_default_na=False)
+for index, row in df.iterrows():
+    #print(index, row)
+    print('Symbol: {0} \n Company Name: {1} \n Next Ex-div: {2}'.format(row['Symbol'], row['Company'], row['Next Ex-div Date']))
+    es = Elasticsearch("http://192.168.0.20:9200")
+    es.info()
+    es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"NASDAQ"})
 
 
 '''------------------------ Dividend history for each ticker----------------'''
+''' initialize dividend history data in elastic
+   write out individual files with div history for each stock 
+   debated writing out single file to monitor for updates by Filebeat.
+   may still do that but may keep individual files for ongoing update checks'''
 
 # basic code to pulldown dividend history based on stock ticker symbol
 
 import pandas as pd
+from elasticsearch import Elasticsearch
+from datetime import datetime
 
 # load tickers from previous summary csv
-#tried loc with header 'Symbol'.  got errors finding Symbol
-# not sure why but switched to integer index instead
-# little quirk = kee_default_na needed to prevent the ticker value NA 
+# little quirk = keep_default_na needed to prevent the ticker value NA 
 # from being converted into an nan
-dfs = pd.read_csv('./datasets/pandas_div_history_tsx.csv', keep_default_na=False)
-#ticks = dfs.loc[["Symbol"]]  -- getting errors on this
-ticks = dfs.iloc[:, 1:2]
-#list(ticks.columns.tolist())
+dfs = pd.read_csv('./datasets/pandas_div_history_tsx.csv', keep_default_na=False, header=0, index_col=0)
 
-##   print(col)
+# loop throuigh all tickers and create new csv for each ticker
+# just push history dataframe to elastic
+# will create running update file for Filebeats in standalone collector later
 
-# loop throuigh all tickers and create new csv for each div stock
+for index, row in dfs.iterrows():
 
-for (sym_index, sym_val) in ticks.iteritems():
-
-    # learned i needed to go through a second loop to get at the string values for 
-    # tickers so i can use them to create the individual stock page URLs
-    
     #cycle through all tickers and pull down div history and store in data folder
-    for sym in sym_val.values:
-        sym = sym.replace('.', '_')
-        print("https://dividendhistory.org/payout/tsx/{0}".format(sym))
-        dfs = pd.read_html('https://dividendhistory.org/payout/tsx/{0}/'.format(sym))
+    # need to replace . with _ for URL safe symbol representation
+   sym = row["Symbol"].replace('.', '_')
+   print("https://dividendhistory.org/payout/tsx/{0}".format(sym))
+   dfs = pd.read_html('https://dividendhistory.org/payout/tsx/{0}/'.format(sym))
 
-# small decision block to deal with optional anoucements header on some pages
-        if len(dfs)==3:
-            df = dfs[0]
-        elif len(dfs)==4:
-            df = dfs[1]
-        else:
-            print('something else going on here')
-# dropthe first two rows since they are unconfirmed
-# drop the last column (i can calculate div increase percentages myself) 
-        dfout = df.iloc[2:, :-1]
-        df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/tsx/pandas_div_history_{0}.csv'.format(sym))
+   # small decision block to deal with optional anoucements header on some 
+   #pages on Dividendhistory.org
+   if len(dfs)==3:
+      df = dfs[0]
+   elif len(dfs)==4:
+      df = dfs[1]
+   else:
+      print('something else going on here')
+   # dropthe first two rows since they are unconfirmed
+   # drop the last column (i can calculate div increase percentages myself) 
+   dfout = df.iloc[2:, :-1]
+   dfout.to_csv('./datasets/ind_div_history/tsx/test/pandas_div_history_{0}.csv'.format(sym))
+   for index1, row1 in dfout.iterrows():    
+      print('Ex-Div: {0} \n Cash Amount: {1} \n Symbol: {2}'.format(datetime.strptime(row1['Ex-Dividend Date'], "%Y-%m-%d").date(), row1['Cash Amount'], row['Symbol']))
+      #es = Elasticsearch("http://192.168.0.20:9200")
+      #es.info()
+      #es.index(index="stonks_ftw", doc_type="companies", body={"ticker":row['Symbol'], "company name":row['Company'], "next ex-div":row['Next Ex-div Date'], "market":"NASDAQ"})
+
+# use dfout to push records out to elastic for initial push 
+# future updates will be done via Collector -> Filebeats
+''' index - stonks_ftw
+        type - divpayout
+            ticker : string
+            ex_div : date (YYYY-mm-dd) python datetime format %Y-%m-%d
+            div_amount : float
+            
+'''   
+       
+
+
+
+
 
 # code to pull down nyse per ticker dividend history
 # and save to nyse data directory 1 file per company
