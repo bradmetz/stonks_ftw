@@ -1,0 +1,7 @@
+{
+     "properties":{
+			"ticker":{"type":"keyword"},
+			"ex_div_date":{"type":"date"},
+			"div_amount":{"type":"float"}
+		  }
+}
