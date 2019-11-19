@@ -28,6 +28,10 @@ Started playing with Elasticsearch getting indices setup.  The following can be 
 Create index for companies
 curl -XPUT 'http://192.168.0.20:9200/stonks_ftw' -H 'Content-Type: application/json' -d'{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 0}}}'
 
+So originally thought I could do a multi-type index.  That is apparenly no longer an option to avoid conflicts in common field names across types.  A custom type field is recommended to identify the type of record.  Alternative, another recommendation is to create an index for each document type.  That way all field types are independent and can be joined after the fact. (Ref: https://www.elastic.co/blog/removal-of-mapping-types-elasticsearch#mapping-type)
+
+So going to rethink how I do my indexes.  
+
 Map fields in companies type
 curl -XPUT 'http://192.168.0.20:9200/stonks_ftw/companies/_mapping?include_type_name=true' -H 'Content-Type: application/json' -d @"create_company_schema.json"
 
