@@ -39,5 +39,11 @@ Wrote up python code to populate my companies type with data scraped from each m
 
 Next step:  Give some thought for how to present the data to the pipeline from the collector to get into Elastic.  Initial thinking is to ingest daily closing price with dividend yield calculated based on collected current dividends.  This would mean creating a pipeline for each ticker symbol (since current flow dumps price history for each ticker into their own file).  Better option for pipeline maybe to have a single file with ticker as a field.  
 
+# Readings for future tasks
+
+Peak detection example for extracting max div values:
+https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy
+
+
 # References
 Neat looking webscraper - simple scraper.io
