@@ -47,3 +47,5 @@ https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-sc
 
 # References
 Neat looking webscraper - simple scraper.io
+Data Version Control DVC and model deployment framework cortex 
+https://towardsdatascience.com/an-open-source-stack-for-managing-and-deploying-models-c5d3b98160bc
