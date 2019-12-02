@@ -33,7 +33,9 @@ So originally thought I could do a multi-type index.  That is apparenly no longe
 So going to rethink how I do my indexes.  
 
 Map fields in companies type
-curl -XPUT 'http://192.168.0.20:9200/stonks_ftw/companies/_mapping?include_type_name=true' -H 'Content-Type: application/json' -d @"create_company_schema.json"
+curl -XPUT 'http://192.168.0.20:9200/stonks_ftw/companies/_mapping' -H 'Content-Type: application/json' -d @"create_company_schema.json"
+
+create_company_schema.json included in this repo.
 
 Wrote up python code to populate my companies type with data scraped from each market table on dividendhistory.org.  Now need to populate dividend histories for each company.  
 
