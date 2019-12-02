@@ -1,7 +1,12 @@
 {
-     "properties":{
-			"ticker":{"type":"keyword"},
-			"company name":{"type":"text"},
-			"next ex-div":{"type":"date"}
-		  }
+    "properties":{
+    			"type":{"type":"keyword"},
+    			"ticker":{"type":"keyword"},
+    			"company name":{"type":"text"},
+    			"next ex-div":{"type":"date"},
+    			"market":{"type":"keyword"},
+    			"ex_div_date":{"type":"date"},
+    			"div_amount":{"type":"float"},
+    			"div_yield":{"type":"float"}
+		        }
 }
