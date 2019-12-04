@@ -41,6 +41,12 @@ Wrote up python code to populate my companies type with data scraped from each m
 
 Next step:  Give some thought for how to present the data to the pipeline from the collector to get into Elastic.  Initial thinking is to ingest daily closing price with dividend yield calculated based on collected current dividends.  This would mean creating a pipeline for each ticker symbol (since current flow dumps price history for each ticker into their own file).  Better option for pipeline maybe to have a single file with ticker as a field.  
 
+# Visualization tools
+
+Tried doing some of my graffing work in Kibana.  Some fields were not showing up to use in graphing.  Part of the explanation online is that raw data plots are not possible in Kibana (which I find odd but ok).  Fields not showing up in Kibana may also be the result of incorrect mapping which I think I can fix within my mapping file used to setup the Elastic index. 
+
+May also try grafana is Kibana keeps giving me headaches but will try to fix the index first.  
+
 # Readings for future tasks
 
 Peak detection example for extracting max div values:
