@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 23 20:46:13 2019
-
-@author: Brad Metz
-"""
-# I am formating this file in blocks for each type collector i tried and used
-# I am trying a number of of different ways of pulling, formatting and writing 
-# I have also kept the methods that did not completely work with notes to 
-# remember what happened.
 
 
 ''' ---------------------- ticker collector (run once: Initialization) --------------------'''
