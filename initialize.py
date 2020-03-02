@@ -15,22 +15,41 @@ def main():
     parse_args()
     getTickers()
     
-    
+    # TSX dividend history download 
     dfs = pd.read_csv(f'{data_file_path}pandas_div_history_tsx.csv', keep_default_na=False)
-    ticks = dfs.iloc[:, 1:2]
-
+    ticks = dfs.iloc[:, 0:1]
+    div_path = data_file_path + "tsx/"
+    make_dir(div_path)
     # loop throuigh all tickers and create new csv for each div stock
-
-
-    bar = progressbar.ProgressBar(maxval=20, widgets=["TSX Dividends from dividendhistory.org", progressbar.Bar('=', '|', '|',' ', progressbar.Percentage())])
-    bar.start()
     for (sym_index, sym_val) in ticks.iteritems():
-    #cycle through all tickers and pull down div history and store in data folder
+        #needed to deal with '.'s in ticker symbols (eg ATB.B)
         for sym in sym_val.values:
-            #needed to deal with '.'s in ticker symbols (eg ATB.B)
             sym = sym.replace('.', '_')
-            print("https://dividendhistory.org/payout/{0}".format(sym))
-            dfs = pd.read_html('https://dividendhistory.org/payout/{0}/'.format(sym))
+            print(f"https://dividendhistory.org/payout/tsx/{sym}/")
+            dfs = pd.read_html(f'https://dividendhistory.org/payout/tsx/{sym}/')
+    # small decision block to deal with optional anoucements header on some pages
+            if len(dfs)==3:
+                df = dfs[0]
+            elif len(dfs)==4:
+                df = dfs[1]
+            else:
+                print('something else going on here')
+            # dropthe first two rows since they are unconfirmed
+            # drop the last column (i can calculate div increase percentages myself) 
+            df.iloc[2:, :-1].to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
+    
+    # NYSE dividend history download
+    dfs = pd.read_csv(f'{data_file_path}pandas_div_history_nyse.csv', keep_default_na=False)
+    ticks = dfs.iloc[:, 0:1]
+    div_path = data_file_path + "nyse/"
+    make_dir(div_path)
+    # loop throuigh all tickers and create new csv for each div stock
+    for (sym_index, sym_val) in ticks.iteritems():
+        #needed to deal with '.'s in ticker symbols (eg ATB.B)
+        for sym in sym_val.values:
+            sym = sym.replace('.', '_')
+            print(f"https://dividendhistory.org/payout/{sym}/")
+            dfs = pd.read_html(f'https://dividendhistory.org/payout/{sym}/')
 
     # small decision block to deal with optional anoucements header on some pages
             if len(dfs)==3:
@@ -39,13 +58,32 @@ def main():
                 df = dfs[1]
             else:
                 print('something else going on here')
-# dropthe first two rows since they are unconfirmed
-# drop the last column (i can calculate div increase percentages myself) 
-    #        dfout = df.iloc[2:, :-1]
-            df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/nyse/pandas_div_history_{0}.csv'.format(sym))
-    bar.finish()
+            # dropthe first two rows since they are unconfirmed
+            # drop the last column (i can calculate div increase percentages myself) 
+            df.iloc[2:, :-1].to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
     
-    
+    # NASDAQ dividend history download
+    dfs = pd.read_csv(f'{data_file_path}pandas_div_history_nasdaq.csv', keep_default_na=False)
+    ticks = dfs.iloc[:, 0:1]
+    div_path = data_file_path + "nasdaq/"
+    make_dir(div_path)
+    # loop throuigh all tickers and create new csv for each div stock
+    for (sym_index, sym_val) in ticks.iteritems():
+        #needed to deal with '.'s in ticker symbols (eg ATB.B)
+        for sym in sym_val.values:
+            sym = sym.replace('.', '_')
+            print(f"https://dividendhistory.org/payout/{sym}/")
+            dfs = pd.read_html(f'https://dividendhistory.org/payout/{sym}/')
+    # small decision block to deal with optional anoucements header on some pages
+            if len(dfs)==3:
+                df = dfs[0]
+            elif len(dfs)==4:
+                df = dfs[1]
+            else:
+                print('something else going on here')
+            # dropthe first two rows since they are unconfirmed
+            # drop the last column (i can calculate div increase percentages myself) 
+            df.iloc[2:, :-1].to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
     
     
     
@@ -89,17 +127,18 @@ def parse_args():
             print("Data file path: {}".format(data_file_path))
         if o in ("-h", "--help"):
             usage()
-            
-
-    if not os.path.exists(data_file_path):
+    make_dir(data_file_path)
+    
+def make_dir(path):
+    if not os.path.exists(path):
         try:
-            os.makedirs(data_file_path)
-            print(f"Directory {data_file_path} created")
+            os.makedirs(path)
+            print(f"Directory {path} created")
         except PermissionError:
-            print(f"Permission to create directory {data_file_path} DENIED ... quitting.")
+            print(f"Permission to create directory {path} DENIED ... quitting.")
             sys.exit(1)
     else:
-        print(f"Directory {data_file_path} already exists ... going to use it for temp ticker store")
+        print(f"Directory {path} already exists ... going to use it for temp ticker store")
 
         
     
