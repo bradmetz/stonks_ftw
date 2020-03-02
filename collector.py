@@ -189,7 +189,7 @@ for (sym_index, sym_val) in ticks.iteritems():
             print('something else going on here')
 # dropthe first two rows since they are unconfirmed
 # drop the last column (i can calculate div increase percentages myself) 
-        dfout = df.iloc[2:, :-1]
+       # dfout = df.iloc[2:, :-1]
         df.iloc[2:, :-1].to_csv('./datasets/ind_div_history/nyse/pandas_div_history_{0}.csv'.format(sym))
 
 # code to pull down all nasdaq individual dividend history and save to 
