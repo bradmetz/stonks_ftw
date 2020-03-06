@@ -34,9 +34,12 @@ def main():
                 df = dfs[1]
             else:
                 print('something else going on here')
-            # dropthe first two rows since they are unconfirmed
+             # dropthe first two rows since they are unconfirmed
             # drop the last column (i can calculate div increase percentages myself) 
-            df.iloc[2:, :-1].to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
+            df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
+            df = df.iloc[2:, :-1]
+            df['Symbol'] = sym
+            df.to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
     
     # NYSE dividend history download
     dfs = pd.read_csv(f'{data_file_path}pandas_div_history_nyse.csv', keep_default_na=False)
@@ -60,7 +63,10 @@ def main():
                 print('something else going on here')
             # dropthe first two rows since they are unconfirmed
             # drop the last column (i can calculate div increase percentages myself) 
-            df.iloc[2:, :-1].to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
+            df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
+            df = df.iloc[2:, :-1]
+            df['Symbol'] = sym
+            df.to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
     
     # NASDAQ dividend history download
     dfs = pd.read_csv(f'{data_file_path}pandas_div_history_nasdaq.csv', keep_default_na=False)
@@ -83,7 +89,10 @@ def main():
                 print('something else going on here')
             # dropthe first two rows since they are unconfirmed
             # drop the last column (i can calculate div increase percentages myself) 
-            df.iloc[2:, :-1].to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
+            df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
+            df = df.iloc[2:, :-1]
+            df['Symbol'] = sym
+            df.to_csv(f'{div_path}pandas_div_history_{sym}.csv', index=False)
     
     
     
