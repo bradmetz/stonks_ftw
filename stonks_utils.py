@@ -120,6 +120,7 @@ def getTickers(in_file_path):
         print("Could not get TSX ticks")
         sys.exit(1)
     df = dfs[0]
+    df['Exchange'] = "TSX"
     df.to_csv(f'{data_file_path}DH_tickers_tsx.csv')
     
     try:
@@ -128,6 +129,7 @@ def getTickers(in_file_path):
         print("Could not get NYSE ticks")
         sys.exit(1)
     df = dfs[0]
+    df['Exchange'] = "NYSE"
     df.to_csv(f'{data_file_path}DH_tickers_nyse.csv')
     
     try:
@@ -136,6 +138,7 @@ def getTickers(in_file_path):
         print("Could not get NASDAQ")
         sys.exit(1)
     df = dfs[0]
+    df['Exchange'] = "NASDAQ"
     df.to_csv(f'{data_file_path}DH_tickers_nasdaq.csv')
 
 
