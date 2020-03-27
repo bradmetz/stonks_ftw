@@ -121,6 +121,7 @@ def getTickers(in_file_path):
         sys.exit(1)
     df = dfs[0]
     df['Exchange'] = "TSX"
+    df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
     df.to_csv(f'{data_file_path}DH_tickers_tsx.csv')
     
     try:
@@ -130,6 +131,7 @@ def getTickers(in_file_path):
         sys.exit(1)
     df = dfs[0]
     df['Exchange'] = "NYSE"
+    df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
     df.to_csv(f'{data_file_path}DH_tickers_nyse.csv')
     
     try:
@@ -139,6 +141,7 @@ def getTickers(in_file_path):
         sys.exit(1)
     df = dfs[0]
     df['Exchange'] = "NASDAQ"
+    df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
     df.to_csv(f'{data_file_path}DH_tickers_nasdaq.csv')
 
 
@@ -212,6 +215,13 @@ def all_fridays_from(in_year: int):
                     if x<current_date:
                         fridays.append(x)
     return fridays
+
+
+# assumes a date format YYYY-MM-DD 
+def str_date_to_epoch(in_date_str):
+    date_epoch = datetime.datetime.strptime(in_date_str, "%Y-%m-%d")
+    return date_epoch.timestamp()
+
 
 def make_dir(path):
     if not os.path.exists(path):
