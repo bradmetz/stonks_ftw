@@ -1,0 +1,91 @@
+# search all records
+
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+# return results for stonksftw
+POST /stonksftw/_search
+{
+   "query":{
+      "match_all": {}
+    }
+}
+
+# return number of records in index
+POST /stonksftw/_search?filter_path=hits.total
+{
+   "query":{
+     "match_all": {}
+
+   }
+}
+
+# check indices
+GET /_cat/indices
+
+# remove index
+DELETE /stonksftw/
+
+# create index for stonks tickers 
+PUT /stonksftw
+{
+  "mappings":{
+
+    "properties":{
+
+      "doc_type":{
+        "type":"keyword"
+      },
+
+      "symbol":{
+        "type":"keyword"
+      },
+
+      "company":{
+        "type":"text"
+      },
+
+      "yield_snap":{
+        "type":"float"
+      },
+      "ex_div_date_snap_epoch":{
+        "type":"date"
+      },
+      "ex_div_date_snap":{
+          "type":"date",
+          "format":"YYYY-MM-DD"
+      },
+      "exchange":{
+    	    "type":"text"
+      }
+
+    }
+  }
+}
+
+
+#add fields for {ex_div_date, payout_date, #cash_amount) for div history
+
+PUT /stonksftw/_mapping
+{
+  "properties": {
+    "ex_div_date": {
+      "type": "date",
+      "format":"YYY-MM-DD"
+    },
+    "payout_date":{
+      "type":"date",
+      "format":"YYYY-MM-DD"
+    },
+    "cash_amount":{
+      "type":"float"
+    },
+    "exchange":{
+    	"type":"text"
+    }
+  }
+}
