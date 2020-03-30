@@ -47,7 +47,7 @@ To get Kibana to recognize the data, create an index in the Kibana management pa
 
 # Next steps
 * create automatic elasticsearch index creation
-* create logstash pipeline for dividend history records for each company
+* finish final data clean up and ingest from dividendhistory (weekly reports)
 * create collector for daily clsoing prices
 * start creating visualizations in Kibana
 
