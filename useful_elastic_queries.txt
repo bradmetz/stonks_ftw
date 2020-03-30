@@ -30,7 +30,7 @@ GET /_cat/indices
 # remove index
 DELETE /stonksftw/
 
-# create index for stonks tickers 
+# create index for stonks tickers
 PUT /stonksftw
 {
   "mappings":{
@@ -68,24 +68,26 @@ PUT /stonksftw
 }
 
 
-#add fields for {ex_div_date, payout_date, #cash_amount) for div history
+
+#add fields for {ex_div_date, payout_date, #cash_amount, #epoch time stamps) for div history
 
 PUT /stonksftw/_mapping
 {
   "properties": {
     "ex_div_date": {
-      "type": "date",
-      "format":"YYY-MM-DD"
+      "type": "text"
     },
     "payout_date":{
-      "type":"date",
-      "format":"YYYY-MM-DD"
+      "type":"text"
     },
     "cash_amount":{
       "type":"float"
     },
-    "exchange":{
-    	"type":"text"
+    "ex_div_date_epoch":{
+      "type":"date"
+    },
+    "payout_date_epoch":{
+      "type":"date"
     }
   }
 }
