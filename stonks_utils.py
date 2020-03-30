@@ -44,9 +44,8 @@ def get_div_histories_DH(in_file_path):
             df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
             df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
             df = df.iloc[:, :-1]
-            df['Symbol'] = sym
             df['Exchange'] = 'TSX'
-            
+            df['Symbol'] = sym
             # fill any empty Payout Date fields with todays date
             # this is a work around for an annoying gap in dataset
             curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
