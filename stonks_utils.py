@@ -8,6 +8,7 @@ Created on Thu Mar  5 19:54:22 2020
 
 import pandas as pd
 import calendar, datetime, os, sys
+import numpy as np
 from datetime import date
 
 # in_file_path is the root dataset path with trailing '/' 
@@ -213,11 +214,9 @@ def dl_and_write_DH_reports(in_file_path, year: int, market):
         if write_file: 
             df = dfs[0]
             df = df.iloc[:, :16]
-            #print(df.columns)
             colnames = []
             for col in df.columns:
                 colnames.append(col[1])
-                #print(col[1])
             df.columns = colnames
             # remove sector category rows from data
             # this function assumes that all cells are populated with same string
@@ -225,7 +224,29 @@ def dl_and_write_DH_reports(in_file_path, year: int, market):
             for row_num, row in df.iterrows():
                 if row['Price'] == row['Name']:
                     df = df.drop(row_num)
-                    #3print(f"Removed {row['Price']} number {row_num}")
+            
+            date_str  = "{0}-{1}-{2}".format(day.year, day.strftime("%m"), day.strftime("%d"))
+            df['report_date_epoch'] = int(((datetime.datetime.strptime(date_str, "%Y-%m-%d")).timestamp())*1000)
+            # strip % from yld and PayRto
+            df['Yld'] = df['Yld'].map(lambda x: x.lstrip('').rstrip('%'))
+            df['PayRto'] = df['PayRto'].map(lambda x: x.lstrip('').rstrip('%'))
+            
+            # split div frequency from ex-div date
+            # had to run in a try statement because of at least one report 
+            # that had no dates, just requency for ex-div date .. if this happens,
+            # whole div-freq column is set to -
+            try:
+                df['div_freq'] = (df['Ex-Div'].str.split(pat=r'\d\d\d\d-\d\d-\d\d', expand=True))[1]
+                df['Ex-Div'] = df['Ex-Div'].map(lambda x: x.lstrip('').rstrip('AQSMU'))
+            except:
+                df['div_freq'] = "-"
+                pass
+            # need to reinsert nans for whitespace cells as nans are removed on import
+            # once nans are back in, fillnan with - 
+            # all of this is because of one ticker symbol (NA) which is interpreted as a NaN on import
+            # unless keep_default_na=false
+            df = df.replace(r'^\s*$', np.nan, regex=True)
+            df = df.fillna(value='-')
             
             
             # write out the fixed up report
