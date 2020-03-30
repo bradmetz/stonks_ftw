@@ -8,6 +8,7 @@ Created on Thu Mar  5 19:54:22 2020
 
 import pandas as pd
 import calendar, datetime, os, sys
+from datetime import date
 
 # in_file_path is the root dataset path with trailing '/' 
 # other directories will be created in here so should be writable
@@ -39,11 +40,21 @@ def get_div_histories_DH(in_file_path):
                 df = dfs[1]
             else:
                 print('something else going on here')
-            # dropthe first two rows since they are unconfirmed
             # drop the last column (i can calculate div increase percentages myself) 
             df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
-            df = df.iloc[2:, :-1]
+            df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
+            df = df.iloc[:, :-1]
             df['Symbol'] = sym
+            df['Exchange'] = 'TSX'
+            
+            # fill any empty Payout Date fields with todays date
+            # this is a work around for an annoying gap in dataset
+            curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
+            df = df.fillna(value=curr_date)
+            
+            df['ex-div date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Ex-Dividend Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+            df['payout date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Payout Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+            
             df.to_csv(f'{div_path}DH_div_history_{sym}.csv', index=False)
     
     # NYSE dividend history download
@@ -71,11 +82,24 @@ def get_div_histories_DH(in_file_path):
                 df = dfs[1]
             else:
                 print('something else going on here')
-            # dropthe first two rows since they are unconfirmed
             # drop the last column (i can calculate div increase percentages myself) 
             df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
-            df = df.iloc[2:, :-1]
+            df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
+            df = df.iloc[:, :-1]
+            df['Exchange'] = 'NYSE'
             df['Symbol'] = sym
+            
+             # fill any empty Payout Date fields with todays date
+            # this is a work around for an annoying gap in dataset
+            curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
+            df = df.fillna(value=curr_date)
+            
+            # need to check for post processing dataframes that are empty.
+            # this occurs when a company has just started paying dividends since 
+            # future dividend records are currenlty removed ... may look at adding them back in
+        
+            df['ex-div date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Ex-Dividend Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+            df['payout date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Payout Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
             df.to_csv(f'{div_path}DH_div_history_{sym}.csv', index=False)
     
     # NASDAQ dividend history download
@@ -103,11 +127,21 @@ def get_div_histories_DH(in_file_path):
                 df = dfs[1]
             else:
                 print('something else going on here')
-            # dropthe first two rows since they are unconfirmed
             # drop the last column (i can calculate div increase percentages myself) 
             df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
-            df = df.iloc[2:, :-1]
+            df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
+            df = df.iloc[:, :-1]
+            df['Exchange'] = 'NASDAQ'
             df['Symbol'] = sym
+            
+            # fill any empty Payout Date fields with todays date
+            # this is a work around for an annoying gap in dataset
+            curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
+            df = df.fillna(value=curr_date)
+            
+            df['ex-div date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Ex-Dividend Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+            df['payout date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Payout Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+            
             df.to_csv(f'{div_path}DH_div_history_{sym}.csv', index=False)
 
 # ticker lists stores in root data directory
