@@ -91,3 +91,82 @@ PUT /stonksftw/_mapping
     }
   }
 }
+
+
+# create index for weekly DH reports
+PUT /stonksftw_weekly_reports
+{
+  "mappings":{
+
+    "properties":{
+
+      "doc_type":{
+        "type":"keyword"
+      },
+
+      "symbol":{
+        "type":"keyword"
+      },
+
+      "company":{
+        "type":"text"
+      },
+
+      "price_snap":{
+        "type":"float"
+      },
+      "yield_snap":{
+        "type":"float"
+      },
+      "ex_div_date_snap":{
+          "type":"date",
+          "format":"YYYY-MM-DD"
+      },
+      "pay_ratio":{
+        "type":"float"
+      },
+      "PE":{
+        "type":"float"
+      },
+      "PB":{
+        "type":"float"
+      },
+      "beta":{
+        "type":"float"
+      },
+      "mkt_cap":{
+        "type":"float"
+      },
+      "week_change":{
+        "type":"float"
+      },
+      "month_change":{
+        "type":"float"
+      },
+      "2_month_change":{
+        "type":"float"
+      },
+      "3_month_change":{
+        "type":"float"
+      },
+      "6_month_change":{
+        "type":"float"
+      },
+      "1_year_change":{
+        "type":"float"
+      },
+      "report_date_epoch":{
+        "type":"date"
+      },
+      "div_freq":{
+        "type":"text"
+      },
+      "market_country":{
+        "type":"text"
+      },
+      "ex_div_epoch":{
+        "type":"date"
+      }
+    }
+  }
+}
