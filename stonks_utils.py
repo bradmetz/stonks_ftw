@@ -247,8 +247,13 @@ def dl_and_write_DH_reports(in_file_path, year: int, market):
             # unless keep_default_na=false
             df = df.replace(r'^\s*$', np.nan, regex=True)
             df = df.fillna(value='-')
-            
-            
+            df['market'] = market            
+            try:
+                df['ex_div_epoch'] = df.apply (lambda x: "-" if x['Ex-Div'] == "-" else int(((datetime.datetime.strptime(x['Ex-Div'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+            except:
+                df['ex_div_epoch'] = "-"
+                #print("Exception tripped")
+                pass
             # write out the fixed up report
             df.to_csv(data_file_path, index=0)
     printProgressBar(len(fridays), len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix= 'Complete', length=50)
