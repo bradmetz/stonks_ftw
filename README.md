@@ -35,21 +35,30 @@ PUT /stonksftw { "mappings":{ "properties":{ "doc_type":{ "type":"keyword" }, "s
 
 A collection of useful HTTP elasticsearch queries are provided in the useful_elastic_queries.txt file.
 
+Added HTTP query to setup the index for the weekly dividendhistory reports.  I am using a separate index to store the reports because of the size of the reports.  
+
 # Logstash ingest of ticker dataset to elasticsearch
 Once this is created, use the manual_logstash_load.config with logstash to load up the data in Elasticsearch. Right now it assumes that the Elasticstack components are all running locally. The following logstash command will load the data (uses the manual_logstash_load.config pipeline configuration provided in this project):
 
-config test sudo /usr/share/logstash/bin/logstash --config.test_and_exit -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load.config"
+config test sudo /usr/share/logstash/bin/logstash --config.test_and_exit -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load_tickers.config"
 
-load command sudo /usr/share/logstash/bin/logstash -r -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load.config"
+load command sudo /usr/share/logstash/bin/logstash -r -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load_tickers.config"
+
+The follwing configs can be used to setup ingest pipelines for dividend history records and weekly reports from dividendhistory.org.  
+
+manual_logstash_load_div_history.config
+manual_logstash_load_DH_weekly.config
 
 # Kibana index setup
 To get Kibana to recognize the data, create an index in the Kibana management panel for stonks. Use the ex_div_date_snap_epoch as main time series field. The epoch timestamp will allow Kibana to properly display and process the ex-div_snap field.
 
 # Next steps
 * create automatic elasticsearch index creation
-* finish final data clean up and ingest from dividendhistory (weekly reports)
 * create collector for daily clsoing prices
 * start creating visualizations in Kibana
+* create database backend for persitent storage
+* learn plotly and/or matplotlib for creating graphs
+* python based dashboard/vis options (dash)
 
 # Readings for future tasks
 Peak detection example for extracting max div values: https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy
