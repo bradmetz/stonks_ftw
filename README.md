@@ -53,12 +53,13 @@ manual_logstash_load_DH_weekly.config
 To get Kibana to recognize the data, create an index in the Kibana management panel for stonks. Use the ex_div_date_snap_epoch as main time series field. The epoch timestamp will allow Kibana to properly display and process the ex-div_snap field.
 
 # Next steps
-* create automatic elasticsearch index creation
-* create collector for daily clsoing prices
-* start creating visualizations in Kibana
+* create automatic elasticsearch index creation 
+* create collector for daily clsoing prices (may well add calculated daily div yield to this record)
 * create database backend for persitent storage
 * learn plotly and/or matplotlib for creating graphs
 * python based dashboard/vis options (dash)
+* setup automatic collection updates to run on server
+
 
 # Readings for future tasks
 Peak detection example for extracting max div values: https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy
