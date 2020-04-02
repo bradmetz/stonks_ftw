@@ -54,6 +54,12 @@ To get Kibana to recognize the data, create an index in the Kibana management pa
 
 For the DH Weekly reports, I recommend using the report_date_epoch as the main time series field when you setup your index.  This will make creation of future visualizations easier.  
 
+# Initial playing with python packaging
+
+If you want to try and download and install the latest version of stonksftw, grab it from this link
+https://test.pypi.org/project/stonksftw-pkg-bradmetz/0.0.1/
+
+
 # Next steps
 * create automatic elasticsearch index creation (either using python of bashscript) 
 - 
