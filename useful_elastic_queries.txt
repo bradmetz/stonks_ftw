@@ -91,6 +91,14 @@ PUT /stonksftw/_mapping
     }
   }
 }
+DELETE /stonksftw_weekly_reports/
+
+POST /stonksftw_weekly_reports/_count
+{
+   "query":{
+     "match_all": {}
+   }
+}
 
 
 # create index for weekly DH reports
@@ -113,50 +121,65 @@ PUT /stonksftw_weekly_reports
       },
 
       "price_snap":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "yield_snap":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed": true
       },
       "ex_div_date_snap":{
           "type":"date",
-          "format":"YYYY-MM-DD"
+          "format":"YYYY-MM-DD",
+          "ignore_malformed": true
       },
       "pay_ratio":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed": true
       },
       "PE":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed": true
       },
       "PB":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed": true
       },
       "beta":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "mkt_cap":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "week_change":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "month_change":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "2_month_change":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "3_month_change":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "6_month_change":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "1_year_change":{
-        "type":"float"
+        "type":"float",
+        "ignore_malformed":true
       },
       "report_date_epoch":{
-        "type":"date"
+        "type":"date",
+        "ignore_malformed": true
       },
       "div_freq":{
         "type":"text"
@@ -165,7 +188,8 @@ PUT /stonksftw_weekly_reports
         "type":"text"
       },
       "ex_div_epoch":{
-        "type":"date"
+        "type":"date",
+        "ignore_malformed":true
       }
     }
   }
