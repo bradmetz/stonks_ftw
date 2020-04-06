@@ -10,6 +10,7 @@ can be run with no parameters
 
 """
 import sys, getopt
+import pandas as pd
 import stonks_utils
 
 def main():
@@ -23,8 +24,18 @@ def main():
     stonks_utils.dl_and_write_DH_reports(data_file_path, 2019, "USA")
     stonks_utils.dl_and_write_DH_reports(data_file_path, 2019, "CAN")
     
-    
+    # need to pass tickers as a list
+    dfs = pd.read_csv('./datasets/DH_tickers_tsx.csv', keep_default_na=False)
+    sym_list = dfs['Symbol'].to_list()
+    stonks_utils.get_ticker_price_history(sym_list, 'max', data_file_path, 'TSX')
 
+    dfs = pd.read_csv('./datasets/DH_tickers_nyse.csv', keep_default_na=False)
+    sym_list = dfs['Symbol'].to_list()
+    stonks_utils.get_ticker_price_history(sym_list, 'max', data_file_path, 'NYSE')
+    
+    dfs = pd.read_csv('./datasets/DH_tickers_nasdaq.csv', keep_default_na=False)
+    sym_list = dfs['Symbol'].to_list()
+    stonks_utils.get_ticker_price_history(sym_list, 'max', data_file_path, 'NASDAQ')
 
 def parse_args():
     global data_file_path
