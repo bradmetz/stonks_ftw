@@ -55,12 +55,6 @@ def parse_args():
             usage()
     stonks_utils.make_dir(data_file_path)
     
-
-        
-    
-
-
-
 def usage():
     print ('-----------------------------------------------------------')
     print ('Initialization script for stonksftw stock analysis project')

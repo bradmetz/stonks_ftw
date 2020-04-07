@@ -38,16 +38,27 @@ def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_marke
         print('market must be one of TSX, NYSE, or NASDAQ')
         return -1
     
+    i=0
+    printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+
+    
     for curr_sym in in_tickers:
+        i += 1
+        printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
         curr_sym = curr_sym.replace('.', '-')
         if in_market == 'TSX':
             curr_sym = curr_sym + '.TO'
         curr_tick = yf.Ticker(curr_sym)
         ret_df = curr_tick.history(period=in_period)
-        ret_df['symbol'] = curr_sym
-        ret_df['market'] = in_market
-        ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv')
-        
+        if ret_df.empty is False:
+            #print(f"getting {curr_tick}")
+            ret_df['symbol'] = curr_sym
+            ret_df['market'] = in_market
+            ret_df = ret_df.reset_index()
+            ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+            ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', index=False)
+        else:
+            pass
     return 0
         
 
