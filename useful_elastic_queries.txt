@@ -91,6 +91,43 @@ PUT /stonksftw/_mapping
     }
   }
 }
+
+# add fields for daily price history
+PUT /stonksftw/_mapping
+{
+  "properties": {
+    "price_date": {
+      "type": "text"
+    },
+    "open":{
+      "type":"float"
+    },
+    "high":{
+      "type":"float"
+    },
+    "low":{
+      "type":"float"
+    },
+    "close":{
+      "type":"float"
+    },
+    "volume":{
+      "type":"int"
+    },
+    "dividend":{
+      "type":"float"
+    },
+    "splits":{
+      "type":"float"
+    },
+    "price_date_epoch":{
+      "type":"date"
+    }
+  }
+}
+
+
+
 DELETE /stonksftw_weekly_reports/
 
 POST /stonksftw_weekly_reports/_count

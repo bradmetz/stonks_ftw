@@ -9,7 +9,59 @@ Created on Thu Mar  5 19:54:22 2020
 import pandas as pd
 import calendar, datetime, os, sys
 import numpy as np
+import yfinance as yf
 from datetime import date
+
+
+# generalize function to take a list of tickers instead of a pandas dataframe
+# returns 0 on success -1 otherwise
+# default time period is "max" 
+# write all price histories to in_file_path/price_histories
+# may need to rethink how i code the daily updater code
+
+def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_market):
+    
+    
+    data_file_path = in_file_path
+    data_file_path = data_file_path + 'price_history/'
+    make_dir(data_file_path)
+    if in_period == 'max':
+        print("got max")
+    # needed for daily automated updates
+    elif in_period == 'last_day':
+        print("got last_day")
+    else:
+        print('Only \'max\' and \'last_day\' supported as this time')
+        return -1
+    
+    if in_market != 'TSX' and in_market != 'NYSE' and in_market != 'NASDAQ':
+        print('market must be one of TSX, NYSE, or NASDAQ')
+        return -1
+    
+    i=0
+    printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+
+    
+    for curr_sym in in_tickers:
+        i += 1
+        printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+        curr_sym = curr_sym.replace('.', '-')
+        if in_market == 'TSX':
+            curr_sym = curr_sym + '.TO'
+        curr_tick = yf.Ticker(curr_sym)
+        ret_df = curr_tick.history(period=in_period)
+        if ret_df.empty is False:
+            #print(f"getting {curr_tick}")
+            ret_df['symbol'] = curr_sym
+            ret_df['market'] = in_market
+            ret_df = ret_df.reset_index()
+            ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+            ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', index=False)
+        else:
+            pass
+    return 0
+        
+
 
 # in_file_path is the root dataset path with trailing '/' 
 # other directories will be created in here so should be writable
