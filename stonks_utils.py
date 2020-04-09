@@ -52,7 +52,7 @@ def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_marke
         ret_df = curr_tick.history(period=in_period)
         if ret_df.empty is False:
             #print(f"getting {curr_tick}")
-            ret_df['symbol'] = curr_sym
+            ret_df['symbol'] = curr_sym.replace('.TO', '')
             ret_df['market'] = in_market
             ret_df = ret_df.reset_index()
             ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
@@ -98,7 +98,7 @@ def get_div_histories_DH(in_file_path):
             df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
             df = df.iloc[:, :-1]
             df['Exchange'] = 'TSX'
-            df['Symbol'] = sym
+            df['Symbol'] = sym.replace('_', '.')
             # fill any empty Payout Date fields with todays date
             # this is a work around for an annoying gap in dataset
             curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
@@ -139,7 +139,7 @@ def get_div_histories_DH(in_file_path):
             df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
             df = df.iloc[:, :-1]
             df['Exchange'] = 'NYSE'
-            df['Symbol'] = sym
+            df['Symbol'] = sym.replace('_', '.')
             
              # fill any empty Payout Date fields with todays date
             # this is a work around for an annoying gap in dataset
@@ -184,7 +184,7 @@ def get_div_histories_DH(in_file_path):
             df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
             df = df.iloc[:, :-1]
             df['Exchange'] = 'NASDAQ'
-            df['Symbol'] = sym
+            df['Symbol'] = sym.replace('_', '.')
             
             # fill any empty Payout Date fields with todays date
             # this is a work around for an annoying gap in dataset
@@ -241,7 +241,6 @@ def dl_and_write_DH_reports(in_file_path, year: int, market):
     if year < 2019:
         print("There are no reports prior to 2019.  Enter year 2019 or greater")
         return -1
-    
     write_file = True
     data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
     make_dir(data_file_path)
