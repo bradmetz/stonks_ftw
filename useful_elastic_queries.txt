@@ -16,7 +16,7 @@ POST /stonksftw/_search
 }
 
 # return number of records in index
-POST /stonksftw/_search?filter_path=hits.total
+POST /stonksftw_tickers/_search?filter_path=hits.total
 {
    "query":{
      "match_all": {}
@@ -31,7 +31,7 @@ GET /_cat/indices
 DELETE /stonksftw/
 
 # create index for stonks tickers
-PUT /stonksftw
+PUT /stonks_tickers
 {
   "mappings":{
 
@@ -67,7 +67,40 @@ PUT /stonksftw
   }
 }
 
+PUT /stonks_div_history
+{
+  "mappings":{
 
+    "properties":{
+
+      "doc_type":{
+        "type":"keyword"
+      },
+
+      "symbol":{
+        "type":"keyword"
+      },
+      "exchange":{
+    	    "type":"text"
+      },
+      "ex_div_date": {
+        "type": "text"
+      },
+      "payout_date":{
+        "type":"text"
+      },
+      "cash_amount":{
+        "type":"float"
+      },
+      "ex_div_date_epoch":{
+        "type":"date"
+      },
+      "payout_date_epoch":{
+        "type":"date"
+      }
+    }
+  }
+}
 
 #add fields for {ex_div_date, payout_date, #cash_amount, #epoch time stamps) for div history
 
@@ -93,39 +126,47 @@ PUT /stonksftw/_mapping
 }
 
 # add fields for daily price history
-PUT /stonksftw/_mapping
+PUT /stonks_price_history
 {
-  "properties": {
-    "price_date": {
-      "type": "text"
-    },
-    "open":{
-      "type":"float"
-    },
-    "high":{
-      "type":"float"
-    },
-    "low":{
-      "type":"float"
-    },
-    "close":{
-      "type":"float"
-    },
-    "volume":{
-      "type":"int"
-    },
-    "dividend":{
-      "type":"float"
-    },
-    "splits":{
-      "type":"float"
-    },
-    "price_date_epoch":{
-      "type":"date"
-    }
-  }
-}
+  "mappings":{
 
+    "properties": {
+      "symbol": {
+        "type":"text"
+        },
+      "exchange":{
+        "type":"text"
+        },
+      "price_date": {
+        "type": "text"
+        },
+      "open":{
+        "type":"float"
+        },
+      "high":{
+        "type":"float"
+        },
+      "low":{
+        "type":"float"
+        },
+      "close":{
+        "type":"float"
+        },
+      "volume":{
+        "type":"integer"
+        },
+      "dividend":{
+        "type":"float"
+        },
+      "splits":{
+        "type":"float"
+        },
+      "price_date_epoch":{
+        "type":"date"
+        }
+      }
+    }
+}
 
 
 DELETE /stonksftw_weekly_reports/
@@ -139,7 +180,7 @@ POST /stonksftw_weekly_reports/_count
 
 
 # create index for weekly DH reports
-PUT /stonksftw_weekly_reports
+PUT /stonks_weekly_reports
 {
   "mappings":{
 
