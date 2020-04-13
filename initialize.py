@@ -20,6 +20,8 @@ def main():
     parse_args()
     
     stonks_utils.getTickers(data_file_path)
+    
+    
     stonks_utils.get_div_histories_DH(data_file_path)
     stonks_utils.dl_and_write_DH_reports(data_file_path, 2019, "USA")
     stonks_utils.dl_and_write_DH_reports(data_file_path, 2019, "CAN")
@@ -62,6 +64,8 @@ def usage():
     print ('-e --elastic : load tickers direct to elastic')
     print ('')
     print ('-t --temp : specify temp directory to store tickers prior to elastic load (default is <projectdir>/datasets')
+    print ('')
+    
     print ('-----------------------------------------------------------')
     sys.exit(' ')
 
