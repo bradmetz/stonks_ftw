@@ -46,7 +46,7 @@ def main():
     #   check if report from last Friday exists
     #   if not : grab and write
     
-    # TSX price updates
+    # price updates
     
     ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'tsx')
     stonks_utils.update_ticker_price_records(ticks, './datasets/', 'TSX' )
@@ -55,6 +55,11 @@ def main():
     ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nasdaq')
     stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NASDAQ' )
 
+    # weekly report updates based on last report
+    stonks_utils.dl_and_write_DH_reports(data_file_path, "USA", update=True)
+    stonks_utils.dl_and_write_DH_reports(data_file_path, "CAN", update=True)
+
+   # update historic dividend records
    
     
 def parse_args():
