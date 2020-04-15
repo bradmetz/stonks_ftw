@@ -11,27 +11,55 @@ import calendar, datetime, os, sys
 import numpy as np
 import yfinance as yf
 from datetime import date
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta, FR
 
+
+# update each price history document for each ticker based on last 
+# date recorded up to yesteday 
+# this function meant to be used to update the existing dataset built
+# running get_ticker_price_history previously 
+
+def update_ticker_records(in_tickers: list, in_file_path:str, in_market:str):
+    data_file_path = in_file_path
+    data_file_path = data_file_path + 'price_history/' 
 
 # generalize function to take a list of tickers instead of a pandas dataframe
 # returns 0 on success -1 otherwise
 # default time period is "max" 
 # write all price histories to in_file_path/price_histories
 # may need to rethink how i code the daily updater code
+# use in_period = 'spec' with in_start and in_end dates to specify
+# a time interval.  not specifying end defaults to yesterday
 
-def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_market):
+def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, in_market:str, *args, **kwargs):
     
-    
+    # setup based on input parameters
     data_file_path = in_file_path
     data_file_path = data_file_path + 'price_history/'
     make_dir(data_file_path)
+    
     if in_period == 'max':
         print("got max")
-    # needed for daily automated updates
+    
     elif in_period == 'last_day':
         print("got last_day")
+    
+    elif in_period == 'spec':
+        print('got spec')
+        start = kwargs.get('in_start')
+        end = kwargs.get('in_end')
+        if start!=None:
+            if end==None:
+                end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
+        else:
+            print('You need to provide a start date with spec')
+            return -1
+             
     else:
-        print('Only \'max\' and \'last_day\' supported as this time')
+        test = kwargs.get('test')
+        print(test)
+        print('Only \'max\', \'spec\',  and \'last_day\' supported as this time')
         return -1
     
     if in_market != 'TSX' and in_market != 'NYSE' and in_market != 'NASDAQ':
@@ -49,7 +77,10 @@ def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_marke
         if in_market == 'TSX':
             curr_sym = curr_sym + '.TO'
         curr_tick = yf.Ticker(curr_sym)
-        ret_df = curr_tick.history(period=in_period)
+        if in_period == 'max' or in_period =='last_day':    
+            ret_df = curr_tick.history(period=in_period)
+        else:
+            ret_df = curr_tick.history(start=start, end=end)
         if ret_df.empty is False:
             #print(f"getting {curr_tick}")
             ret_df['symbol'] = curr_sym.replace('.TO', '')
@@ -361,6 +392,8 @@ def all_fridays_from(in_year: int):
                         fridays.append(x)
     return fridays
 
+def get_last_friday():
+    return date.today() + relativedelta(weekday=FR(-1))    
 
 # assumes a date format YYYY-MM-DD 
 def str_date_to_epoch(in_date_str):
