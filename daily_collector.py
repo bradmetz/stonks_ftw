@@ -20,12 +20,16 @@ options to consider
 """
 import sys, getopt
 import pandas as pd
+from datetime import date, timedelta 
 import stonks_utils
 
 def main():
     
     global data_file_path
     data_file_path = "./datasets/"
+    curr_date = date.today()
+    yesterday = curr_date - timedelta(days=1)
+    last_friday = stonks_utils.get_last_friday()
     parse_args()
     
     # get current date
@@ -42,16 +46,16 @@ def main():
     #   check if report from last Friday exists
     #   if not : grab and write
     
+    # TSX price updates
     
-    stonks_utils.getTickers(data_file_path)
-    dfs = pd.read_csv('./datasets/DH_tickers_tsx.csv', keep_default_na=False)
-    sym_list = dfs['Symbol'].to_list()
-    
-    dfs = pd.read_csv('./datasets/DH_tickers_nyse.csv', keep_default_na=False)
-    sym_list = dfs['Symbol'].to_list()
-    
-    dfs = pd.read_csv('./datasets/DH_tickers_nasdaq.csv', keep_default_na=False)
-    sym_list = dfs['Symbol'].to_list()
+    ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'tsx')
+    stonks_utils.update_ticker_price_records(ticks, './datasets/', 'TSX' )
+    ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nyse')
+    stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NYSE' )
+    ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nasdaq')
+    stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NASDAQ' )
+
+   
     
 def parse_args():
     global data_file_path

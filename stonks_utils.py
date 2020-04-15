@@ -20,10 +20,45 @@ from dateutil.relativedelta import relativedelta, FR
 # this function meant to be used to update the existing dataset built
 # running get_ticker_price_history previously 
 
-def update_ticker_records(in_tickers: list, in_file_path:str, in_market:str):
+# lazy solution is to just run full history collect and 
+# overwrite full csv files each night
+def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:str):
     data_file_path = in_file_path
     data_file_path = data_file_path + 'price_history/' 
+    
+    # get last record date from file
+    i=0
+    printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
 
+    
+    for curr_sym in in_tickers:
+        i += 1
+        printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+        curr_sym = curr_sym.replace('.', '-')
+        if in_market == 'TSX':
+            curr_sym = curr_sym + '.TO'
+        
+        # get last update date
+        try:
+            dfs = pd.read_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', keep_default_na=False)
+        except:
+            pass
+        
+        dfs['Date'] = pd.to_datetime(dfs['Date'])
+        last_date = dfs['Date'].max() + relativedelta(days=1)
+        curr_tick = yf.Ticker(curr_sym)
+        
+        ret_df = curr_tick.history(start=last_date, end=date.today())
+        if ret_df.empty is False:
+            #print(f"getting {curr_tick}")
+            ret_df['symbol'] = curr_sym.replace('.TO', '')
+            ret_df['market'] = in_market
+            ret_df = ret_df.reset_index()
+            ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+            ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', mode='a', index=False, header=False)
+        else:
+            pass
+    return 0
 # generalize function to take a list of tickers instead of a pandas dataframe
 # returns 0 on success -1 otherwise
 # default time period is "max" 
@@ -31,7 +66,7 @@ def update_ticker_records(in_tickers: list, in_file_path:str, in_market:str):
 # may need to rethink how i code the daily updater code
 # use in_period = 'spec' with in_start and in_end dates to specify
 # a time interval.  not specifying end defaults to yesterday
-
+# all functions will overwrite any existing data files
 def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, in_market:str, *args, **kwargs):
     
     # setup based on input parameters
