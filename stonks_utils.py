@@ -33,6 +33,7 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
     
     for curr_sym in in_tickers:
         i += 1
+        ret_df = pd.DataFrame()
         printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
         curr_sym = curr_sym.replace('.', '-')
         if in_market == 'TSX':
@@ -46,9 +47,14 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
         
         dfs['Date'] = pd.to_datetime(dfs['Date'])
         last_date = dfs['Date'].max() + relativedelta(days=1)
+        #print(curr_sym)
         curr_tick = yf.Ticker(curr_sym)
-        
-        ret_df = curr_tick.history(start=last_date, end=date.today())
+        #print(last_date)
+        if last_date < date.today():
+            ret_df = curr_tick.history(start=last_date, end=date.today())
+        else:
+            #print(f"no update for {curr_sym}")
+            pass
         if ret_df.empty is False:
             #print(f"getting {curr_tick}")
             ret_df['symbol'] = curr_sym.replace('.TO', '')
