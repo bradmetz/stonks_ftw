@@ -11,27 +11,96 @@ import calendar, datetime, os, sys
 import numpy as np
 import yfinance as yf
 from datetime import date
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta, FR
 
 
+# update each price history document for each ticker based on last 
+# date recorded up to yesteday 
+# this function meant to be used to update the existing dataset built
+# running get_ticker_price_history previously 
+
+# lazy solution is to just run full history collect and 
+# overwrite full csv files each night
+def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:str):
+    data_file_path = in_file_path
+    data_file_path = data_file_path + 'price_history/' 
+    
+    # get last record date from file
+    i=0
+    printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+
+    
+    for curr_sym in in_tickers:
+        i += 1
+        ret_df = pd.DataFrame()
+        printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+        curr_sym = curr_sym.replace('.', '-')
+        if in_market == 'TSX':
+            curr_sym = curr_sym + '.TO'
+        
+        # get last update date
+        try:
+            dfs = pd.read_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', keep_default_na=False)
+        except:
+            pass
+        
+        dfs['Date'] = pd.to_datetime(dfs['Date'])
+        last_date = dfs['Date'].max() + relativedelta(days=1)
+        #print(curr_sym)
+        curr_tick = yf.Ticker(curr_sym)
+        #print(last_date)
+        if last_date < date.today():
+            ret_df = curr_tick.history(start=last_date, end=date.today())
+        else:
+            #print(f"no update for {curr_sym}")
+            pass
+        if ret_df.empty is False:
+            #print(f"getting {curr_tick}")
+            ret_df['symbol'] = curr_sym.replace('.TO', '')
+            ret_df['market'] = in_market
+            ret_df = ret_df.reset_index()
+            ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+            ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', mode='a', index=False, header=False)
+        else:
+            pass
+    return 0
 # generalize function to take a list of tickers instead of a pandas dataframe
 # returns 0 on success -1 otherwise
 # default time period is "max" 
 # write all price histories to in_file_path/price_histories
 # may need to rethink how i code the daily updater code
-
-def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_market):
+# use in_period = 'spec' with in_start and in_end dates to specify
+# a time interval.  not specifying end defaults to yesterday
+# all functions will overwrite any existing data files
+def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, in_market:str, *args, **kwargs):
     
-    
+    # setup based on input parameters
     data_file_path = in_file_path
     data_file_path = data_file_path + 'price_history/'
     make_dir(data_file_path)
+    
     if in_period == 'max':
         print("got max")
-    # needed for daily automated updates
+    
     elif in_period == 'last_day':
         print("got last_day")
+    
+    elif in_period == 'spec':
+        print('got spec')
+        start = kwargs.get('in_start')
+        end = kwargs.get('in_end')
+        if start!=None:
+            if end==None:
+                end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
+        else:
+            print('You need to provide a start date with spec')
+            return -1
+             
     else:
-        print('Only \'max\' and \'last_day\' supported as this time')
+        test = kwargs.get('test')
+        print(test)
+        print('Only \'max\', \'spec\',  and \'last_day\' supported as this time')
         return -1
     
     if in_market != 'TSX' and in_market != 'NYSE' and in_market != 'NASDAQ':
@@ -49,7 +118,10 @@ def get_ticker_price_history(in_tickers: list, in_period, in_file_path, in_marke
         if in_market == 'TSX':
             curr_sym = curr_sym + '.TO'
         curr_tick = yf.Ticker(curr_sym)
-        ret_df = curr_tick.history(period=in_period)
+        if in_period == 'max' or in_period =='last_day':    
+            ret_df = curr_tick.history(period=in_period)
+        else:
+            ret_df = curr_tick.history(start=start, end=end)
         if ret_df.empty is False:
             #print(f"getting {curr_tick}")
             ret_df['symbol'] = curr_sym.replace('.TO', '')
@@ -233,19 +305,49 @@ def getTickers(in_file_path):
 
 #return 0 on success and -1 on error
 #in_file_path = base data directory ... subfolders will be created in here
-def dl_and_write_DH_reports(in_file_path, year: int, market):
+
+# could make year an optional parameter
+# use year OR update (which grabs all reports from last report)
+# update flag grab last friday downloaded from dataset and get all subsequent
+# reports
+# year=2019 
+# update=True
+
+def dl_and_write_DH_reports(in_file_path, market, *args, **kwargs):
+    
+    in_year = kwargs.get('year')
+    update = kwargs.get('update')
+    fridays = {}    
     
     if market != "USA" and market!= "CAN":
         print("Market string must be one of USA or CAN")
         return -1
-    if year < 2019:
-        print("There are no reports prior to 2019.  Enter year 2019 or greater")
-        return -1
+    
+    if in_year != None:    
+        if in_year < 2019:
+            print("There are no reports prior to 2019.  Enter year 2019 or greater")
+            return -1
+        elif in_year>2018:
+            print(in_year)
+            fridays = all_fridays_from(in_year=in_year)
+            print('running from year')
+        else:
+            print("No fridays returned")
+            return -1
+    
+    
+    if update==True:
+        fridays = all_fridays_from(update=True, in_market=market)
+        if len(fridays)<1:
+            print("no new fridays returned on update")
+            return 1
+    
     write_file = True
     data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
     make_dir(data_file_path)
-    fridays = all_fridays_from(year)
+    
     i = 0
+    print(fridays)
     printProgressBar(0, len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix = 'Complete', length = 50)
     for day in fridays:      
         data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
@@ -310,22 +412,99 @@ def dl_and_write_DH_reports(in_file_path, year: int, market):
     printProgressBar(len(fridays), len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix= 'Complete', length=50)
     return 0
 
+# in_country is either CAN or USA
+
+
+def get_last_weekly_report_date(in_country):
+    
+    if in_country!='USA' and in_country!='CAN':
+        print("in_country must be one of CAN or USA")
+        return -1
+    
+    dates = os.listdir(f'./datasets/weekly_divhistory_reports/{in_country}')
+    dates = [item.lstrip(f'div_history_report-{in_country}-') for item in dates]
+    dates = [item.rstrip('.csv') for item in dates]
+
+    maxdate = max(dates)    
+    maxdate = datetime.datetime.strptime(maxdate, '%Y-%m-%d')
+
+    return maxdate
+    
+# grabs the tickers symbols from a local list generated by stonks_utils 
+#
+# returns a list of tickers or -1 if failed
+def read_tickers_DH_local(in_datapath: str, in_market: str):
+    
+    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
+        print('Market must be one of tsx, nyse, nasdaq')
+        return -1
+    
+    try:
+        dfs = pd.read_csv(f'{in_datapath}DH_tickers_{in_market}.csv', keep_default_na=False)
+    except:
+        print(f"Could not find file {in_datapath}DH_tickers_{in_market}.csv")
+        return -1
+    sym_list = dfs['Symbol'].to_list()
+    return (sym_list)
+
+# grabs list of tickers from dividendhistory.org
+# 
+# returns symbols as a list or -1 on failure
+
+def read_tickers_DH_remote(in_market: str):
+    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
+        print('Market must be one of tsx, nyse, nasdaq')
+        return -1
+    try:
+        dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0)
+        print(f'https://dividendhistory.org/{in_market}')
+    except:
+        print(f"Could not connect to {in_market} ticks")
+        return -1
+    df = dfs[0]
+    sym_list = df['Symbol'].to_list()
+    return (sym_list)
 
 # returns an array of datetime objects of all fridays from the year given 
 # to the last Friday from the current day
-def all_fridays_from(in_year: int):
+# use update=True with in_market=USA or CAN 
+# use in_year=2019 - this is used for dataset initialization
+
+def all_fridays_from(*args, **kwargs):
+    
+    temp_year = kwargs.get('in_year')
+    update_flag = kwargs.get('update')
+    in_market = kwargs.get('in_market')
+    print(f"in_year: {temp_year}  update: {update_flag}  in_market: {in_market}")
     fridays = []
-    current_date = datetime.datetime.now()
-    for year in range(in_year, current_date.year+1):
-        for month in range (1, 13):
-            cal = calendar.monthcalendar(year, month)
-            for week in cal:
-                if week[calendar.FRIDAY] != 0:
-                    x = datetime.datetime(year, month, week[calendar.FRIDAY])
-                    if x<current_date:
-                        fridays.append(x)
+    if temp_year!=None and temp_year>2018:
+        current_date = datetime.datetime.now()
+        for year in range(temp_year, current_date.year+1):
+            for month in range (1, 13):
+                cal = calendar.monthcalendar(year, month)
+                for week in cal:
+                    if week[calendar.FRIDAY] != 0:
+                        x = datetime.datetime(year, month, week[calendar.FRIDAY])
+                        if x<current_date:
+                            fridays.append(x)
+    if update_flag:
+        temp_date = get_last_weekly_report_date(in_market)
+        while temp_date<datetime.datetime.today():
+            temp_date = next_weekday(temp_date, 4)
+            if temp_date>datetime.datetime.today():
+                break
+            fridays.append(temp_date)
+        
     return fridays
 
+def next_weekday(d, weekday):
+    days_ahead = weekday - d.weekday()
+    if days_ahead <= 0: # Target day already happened this week
+        days_ahead += 7
+    return d + datetime.timedelta(days_ahead)
+
+def get_last_friday():
+    return date.today() + relativedelta(weekday=FR(-1))    
 
 # assumes a date format YYYY-MM-DD 
 def str_date_to_epoch(in_date_str):
