@@ -30,12 +30,11 @@ Initialization script to get the datasources setup. This script uses stonks_util
 usage: initialize.py [-f datasetpath [[default is project path]]]
 
 # Elasticstack setup
-Currently the elasticsearch index needs to be setup manually. I have found it easiest to run the following using Kibana DevTools:
-PUT /stonksftw { "mappings":{ "properties":{ "doc_type":{ "type":"keyword" }, "symbol":{ "type":"keyword" }, "company":{ "type":"text" }, "yield_snap":{ "type":"float" }, "ex_div_date_snap_epoch":{ "type":"date" }, "ex_div_date_snap":{ "type":"date", "format":"YYYY-MM-DD" }, "exchange":{ "type":"text" } } } }
+Currently the elasticsearch indexes need to be setup manually. I have found it easiest to run HTTP commands in Kibana DevTools.
 
 A collection of useful HTTP elasticsearch queries are provided in the useful_elastic_queries.txt file.
 
-Added HTTP query to setup the index for the weekly dividendhistory reports.  I am using a separate index to store the reports because of the size of the reports.  
+There are 4 indexes used in this project for each of the current datasets.  Going forward, I will likely use a different backend for persistent storage but will continue to use elastic for monitoring and exploration.  
 
 # Logstash ingest of ticker dataset to elasticsearch
 Once this is created, use the manual_logstash_load.config with logstash to load up the data in Elasticsearch. Right now it assumes that the Elasticstack components are all running locally. The following logstash command will load the data (uses the manual_logstash_load.config pipeline configuration provided in this project):
@@ -62,9 +61,9 @@ https://test.pypi.org/project/stonksftw-pkg-bradmetz/0.0.1/
 
 # Next steps
 * create automatic elasticsearch index creation (either using python of bashscript) 
-- 
-
-
+* daily collector for cron on server.  
+* explore kafka and/or redis
+* look at generalizing the data pipeline creation framework.  
 
 # Readings for future tasks
 Peak detection example for extracting max div values: https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy
