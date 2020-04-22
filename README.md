@@ -18,16 +18,26 @@ Other APIs I have looked at include the following:
 API for quote data from Alpha Vantage (confirmed - TSE: append for Can quotes) - https://www.alphavantage.co/documentation/#time-series-data. Alpha Vantage also accessible through the pandas_datareader class directly.
 
 # Tools created for this project
-## stonk_utils.py
+### stonk_utils.py
 My collection of python code blocks to create my data set. Outputs data sets to csv for future processing in the pipeline. There is currently support for TSX, NYSE, and NASDAQ dividend stocks. Automatically creates directory sturcture in project directory or another user specified directory. Also prepares data for ingest into elasticsearch using logstash for follow-on use in Kibana.
 
-### Currently implemented:
+Currently implemented:
 grab ticker lists from dividendhistory.org
 grab dividend payout history for each ticker from dividendhistory.org
 grab weekly dividend stock reports (published on Fridays) from dividendhistory.org
-# initialize.py
+
+### initialize.py
 Initialization script to get the datasources setup. This script uses stonks_utils.py to create all the datasets supported.
 usage: initialize.py [-f datasetpath [[default is project path]]]
+
+### daily_collector.py
+This is the daily collector meant to be run as an update script for all datasets.  The default behaviour is to update price, weekly report, and dividend history records from the date the last record was collected.  This can be run standalone to update exisitng datasets but it was designed to run inside a crontab daily to automatically update the dataset.  
+```usage: daily_collector.py [-p --price, -d --div, -w --weekly]
+  -p, --price:  updates daily price records from last record date
+  -d, --div:  updates dividend history records (currently just redownloads the full set)
+  -w, --weekly: updates weekly reports from dividendhistory.org 
+```
+Typical usage in a crontab is `daily_collector.py -p -w -d`
 
 # Elasticstack setup
 Currently the elasticsearch indexes need to be setup manually. I have found it easiest to run HTTP commands in Kibana DevTools.
@@ -37,16 +47,22 @@ A collection of useful HTTP elasticsearch queries are provided in the useful_ela
 There are 4 indexes used in this project for each of the current datasets.  Going forward, I will likely use a different backend for persistent storage but will continue to use elastic for monitoring and exploration.  
 
 # Logstash ingest of ticker dataset to elasticsearch
+## Running logstash manually to load dataset into elasticsearch
 Once this is created, use the manual_logstash_load.config with logstash to load up the data in Elasticsearch. Right now it assumes that the Elasticstack components are all running locally. The following logstash command will load the data (uses the manual_logstash_load.config pipeline configuration provided in this project):
 
+To test configuration files:
+```
 config test sudo /usr/share/logstash/bin/logstash --config.test_and_exit -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load_tickers.config"
+```
+To load data using provided configs:
+```
+sudo /usr/share/logstash/bin/logstash -r -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load_tickers.config"
+```
+The follwing configs can be used to setup ingest pipelines for dividend history records and weekly reports from dividendhistory.org and price history from yahoo finance (found in the manual_logstash_pipeline_configs).  
 
-load command sudo /usr/share/logstash/bin/logstash -r -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load_tickers.config"
-
-The follwing configs can be used to setup ingest pipelines for dividend history records and weekly reports from dividendhistory.org.  
-
-manual_logstash_load_div_history.config
-manual_logstash_load_DH_weekly.config
+* manual_logstash_load_div_history.config
+* manual_logstash_load_DH_weekly.config
+* manual_logstash_load_price_history.config
 
 # Kibana index setup
 To get Kibana to recognize the data, create an index in the Kibana management panel for stonks. Use the ex_div_date_snap_epoch as main time series field. The epoch timestamp will allow Kibana to properly display and process the ex-div_snap field.
