@@ -47,6 +47,7 @@ A collection of useful HTTP elasticsearch queries are provided in the useful_ela
 There are 4 indexes used in this project for each of the current datasets.  Going forward, I will likely use a different backend for persistent storage but will continue to use elastic for monitoring and exploration.  
 
 # Logstash ingest of ticker dataset to elasticsearch
+
 ## Running logstash manually to load dataset into elasticsearch
 Once this is created, use the manual_logstash_load.config with logstash to load up the data in Elasticsearch. Right now it assumes that the Elasticstack components are all running locally. The following logstash command will load the data (uses the manual_logstash_load.config pipeline configuration provided in this project):
 
@@ -58,28 +59,33 @@ To load data using provided configs:
 ```
 sudo /usr/share/logstash/bin/logstash -r -f "/home/brad/projects/stonksftw/stonks_ftw/manual_logstash_load_tickers.config"
 ```
-The follwing configs can be used to setup ingest pipelines for dividend history records and weekly reports from dividendhistory.org and price history from yahoo finance (found in the manual_logstash_pipeline_configs).  
+The follwing configs can be used to setup ingest pipelines for dividend history records and weekly reports from dividendhistory.org and price history from yahoo finance (found in the logstash_pipeline_configs).  
 
 * manual_logstash_load_div_history.config
 * manual_logstash_load_DH_weekly.config
 * manual_logstash_load_price_history.config
 
+## Running logstash as a service to autoload data into elastic
+You can run logstash as a service to automatically push dataset updates to elasticsearch by modifying the pipelines.yml file and adding the configs in the pipelines directory from this project and starting the logstash service.  Running in this configuration in combination with running the daily_collector.py as a cron job will create a regularly updated data collection pipeline for all supported financial datasets.  More details on setting up logstash as a service for this project can be found at: https://github.com/bradmetz/stonks_ftw/wiki/Tips-on-moving-from-Logstash-run-once-using--f-config-to-running-as-a-service
+
 # Kibana index setup
 To get Kibana to recognize the data, create an index in the Kibana management panel for stonks. Use the ex_div_date_snap_epoch as main time series field. The epoch timestamp will allow Kibana to properly display and process the ex-div_snap field.
 
-For the DH Weekly reports, I recommend using the report_date_epoch as the main time series field when you setup your index.  This will make creation of future visualizations easier.  
+For the DH Weekly reports in , I recommend using the report_date_epoch as the main time series field when you setup your index.  This will make creation of future visualizations easier.  
+
+For dividend history records, I recommend using the ex-div date as the main time series field in the kibana index. 
 
 # Initial playing with python packaging
 
 If you want to try and download and install the latest version of stonksftw, grab it from this link
 https://test.pypi.org/project/stonksftw-pkg-bradmetz/0.0.1/
 
-
-# Next steps
-* create automatic elasticsearch index creation (either using python of bashscript) 
-* daily collector for cron on server.  
+# Next steps  
 * explore kafka and/or redis
-* look at generalizing the data pipeline creation framework.  
+* look at generalizing the data pipeline creation framework.
+* alerting on specific conditions
+* daily reports on what is coming up
+* bokeh or dash for visualization
 
 # Readings for future tasks
 Peak detection example for extracting max div values: https://stackoverflow.com/questions/1713335/peak-finding-algorithm-for-python-scipy
