@@ -1,0 +1,15 @@
+# This file is where you define your pipelines. You can define multiple.
+# For more information on multiple pipelines, see the documentation:
+#   https://www.elastic.co/guide/en/logstash/current/multiple-pipelines.html
+
+#- pipeline.id: main
+#  path.config: "/etc/logstash/conf.d/*.conf"
+- pipeline.id: stonks_div
+  path.config: "/home/crap/projects/stonks_ftw/pipeline/manual_logstash_load_div_history.conf"
+  pipeline.workers: 1
+- pipeline.id: stonks_price
+  path.config: "/home/crap/projects/stonks_ftw/pipeline/manual_logstash_load_price_history.conf"
+  pipeline.workers: 3
+- pipeline.id: stonks_weekly
+  path.config: "/home/crap/projects/stonks_ftw/pipeline/manual_logstash_load_DH_weekly.conf"
+  pipeline.workers: 1
