@@ -30,6 +30,8 @@ grab weekly dividend stock reports (published on Fridays) from dividendhistory.o
 Initialization script to get the datasources setup. This script uses stonks_utils.py to create all the datasets supported.
 usage: initialize.py [-f datasetpath [[default is project path]]]
 
+If you receive an immediate "Could not get TSX ticks" error, it may be due to a missing python dependency that was not installed with pandas. Try ``pip3 install lxml``. 
+
 ### daily_collector.py
 This is the daily collector meant to be run as an update script for all datasets.  The default behaviour is to update price, weekly report, and dividend history records from the date the last record was collected.  This can be run standalone to update exisitng datasets but it was designed to run inside a crontab daily to automatically update the dataset.  
 ```usage: daily_collector.py [-p --price, -d --div, -w --weekly]
