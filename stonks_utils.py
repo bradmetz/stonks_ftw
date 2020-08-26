@@ -119,9 +119,9 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
             curr_sym = curr_sym + '.TO'
         curr_tick = yf.Ticker(curr_sym)
         if in_period == 'max' or in_period =='last_day':    
-            ret_df = curr_tick.history(period=in_period)
+            ret_df = curr_tick.history(period=in_period, auto_adjust=False)
         else:
-            ret_df = curr_tick.history(start=start, end=end)
+            ret_df = curr_tick.history(start=start, end=end, auto_adjust=False)
         if ret_df.empty is False:
             #print(f"getting {curr_tick}")
             ret_df['symbol'] = curr_sym.replace('.TO', '')
@@ -464,6 +464,58 @@ def read_tickers_DH_remote(in_market: str):
     df = dfs[0]
     sym_list = df['Symbol'].to_list()
     return (sym_list)
+
+# create daily yields based on daily price data set 
+# write to "yields" directory in datasets under project
+# calculate and write daily yields using last declared div 
+# update after each new div
+
+# for each file in market dir 
+
+def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
+    
+    
+    
+    # read in dividend history,  read in price history, calculate and add daily yield
+    # data structure : date, date_epoch, price, dividend, yield
+    
+    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
+        print('Market must be one of tsx, nyse, nasdaq')
+        return -1
+    
+    # grab divdidend history for ticker
+    try:
+        data_file_path = in_data_path
+        dfs = pd.read_csv(f'{data_file_path}{in_market}/DH_div_history_{in_ticker}.csv', keep_default_na=False)
+        div_path = data_file_path + "yield_history/"
+        make_dir(div_path)
+    except:
+        print(f"Could not find {data_file_path}{in_market}/DH_history_{in_ticker}.csv")
+        return -1
+    
+    print(dfs)
+    
+    # grab price history for ticker
+    
+    try:
+        if in_market == 'tsx':
+            in_ticker += '.TO'
+        dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv')
+    except:
+        print(f"{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv")
+        return -1
+    print(dfs2)
+    
+    # pull and combine records from dataframes
+
+    div_dates = dfs['Ex-Dividend Date'].tolist()
+    
+    # join datasets on date and fill dividends down 
+    
+    
+    return 0
+
+    
 
 # returns an array of datetime objects of all fridays from the year given 
 # to the last Friday from the current day
