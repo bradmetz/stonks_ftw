@@ -511,8 +511,11 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     try:
         if in_market == 'tsx':
             in_ticker_can = in_ticker + '.TO'
-        dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker_can}.csv')
+            dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker_can}.csv')
+        else:
+            dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv')
         
+        print(dfs2)
     except:
         print(f"{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv")
         return -1
@@ -528,7 +531,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     
     # frequency factor
     freq = dfs3.loc[dfs3['Symbol'] == in_ticker]
-    print(freq)
+    #print(freq)
     if freq.iloc[0]['div_freq'] == 'Q':
         yield_factor = 4
     elif freq.iloc[0]['div_freq'] == 'S':
