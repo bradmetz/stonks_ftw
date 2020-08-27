@@ -51,7 +51,7 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
         curr_tick = yf.Ticker(curr_sym)
         #print(last_date)
         if last_date < date.today():
-            ret_df = curr_tick.history(start=last_date, end=date.today())
+            ret_df = curr_tick.history(start=last_date, end=date.today(), auto_adjust=False)
         else:
             #print(f"no update for {curr_sym}")
             pass
@@ -493,25 +493,64 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
         print(f"Could not find {data_file_path}{in_market}/DH_history_{in_ticker}.csv")
         return -1
     
-    print(dfs)
+    #print(dfs)
     
+    try:
+        if in_market == 'tsx':
+            dfs3 = pd.read_csv(f'./datasets/weekly_divhistory_reports/CAN/div_history_report-CAN-2020-08-14.csv', keep_default_na=False)
+        else:
+            dfs3 = pd.read_csv(f'./datasets/weekly_divhistory_reports/USA/div_history_report-USA-2020-08-14.csv', keep_default_na=False)
+        dfs3.drop(columns=["Name", "Price", "Yld", "Ex-Div", "PayRto", "PE", "PB", "Beta", "Mkt Cap", "WK%", "MO%", "2MO%", "3MO%", "6MO%", "1YR%", "report_date_epoch", "ex_div_epoch"], inplace=True)
+    except:
+        print(f'Could not find weekly report for {in_market}')
+        return -1
+    print(dfs3)
+    print(in_ticker)
     # grab price history for ticker
     
     try:
         if in_market == 'tsx':
-            in_ticker += '.TO'
-        dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv')
+            in_ticker_can = in_ticker + '.TO'
+        dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker_can}.csv')
+        
     except:
         print(f"{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv")
         return -1
-    print(dfs2)
-    
-    # pull and combine records from dataframes
-
-    div_dates = dfs['Ex-Dividend Date'].tolist()
-    
+    #print(dfs2)
+   
     # join datasets on date and fill dividends down 
     
+    dfs.rename(columns={'Ex-Dividend Date':'Date'}, inplace=True)
+    result = pd.merge(dfs, dfs2, on=['Date'], how='outer')
+    result.sort_values(by='Date', inplace=True)
+    result.fillna(method='ffill', inplace=True)
+    result.drop(columns=['Close', 'High', 'Low', 'Dividends', 'symbol', 'market', 'date_epoch', 'Stock Splits'], inplace=True)
+    
+    # frequency factor
+    freq = dfs3.loc[dfs3['Symbol'] == in_ticker]
+    print(freq)
+    if freq.iloc[0]['div_freq'] == 'Q':
+        yield_factor = 4
+    elif freq.iloc[0]['div_freq'] == 'S':
+        yield_factor = 2
+    elif freq.iloc[0]['div_freq'] == 'M':
+        yield_factor = 12
+    elif freq.iloc[0]['div_freq'] == 'A':
+        yield_factor = 1
+    else:
+        # ignoring U and - for now
+        yield_factor = 0
+    
+    # yield calculation
+    result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Open']
+    # remove historic price records with no div
+    result = result[result['Daily Yield'].notna()]
+    
+    # write out yield history by exchange and ticker
+    make_dir(f"{data_file_path}yield_history/")
+    
+    print(f"Path to write out {data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv")
+    result.to_csv(f"{data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv", index=0)
     
     return 0
 
