@@ -30,14 +30,17 @@ def main():
     dfs = pd.read_csv('./datasets/DH_tickers_tsx.csv', keep_default_na=False)
     sym_list = dfs['Symbol'].to_list()
     stonks_utils.get_ticker_price_history(sym_list, 'max', data_file_path, 'TSX')
+    stonks_utils.get_all_div_yield_histories(sym_list, 'tsx', data_file_path)
 
     dfs = pd.read_csv('./datasets/DH_tickers_nyse.csv', keep_default_na=False)
     sym_list = dfs['Symbol'].to_list()
     stonks_utils.get_ticker_price_history(sym_list, 'max', data_file_path, 'NYSE')
+    stonks_utils.get_all_div_yield_histories(sym_list, 'nyse', data_file_path)
     
     dfs = pd.read_csv('./datasets/DH_tickers_nasdaq.csv', keep_default_na=False)
     sym_list = dfs['Symbol'].to_list()
     stonks_utils.get_ticker_price_history(sym_list, 'max', data_file_path, 'NASDAQ')
+    stonks_utils.get_all_div_yield_histories(sym_list, 'nasdaq', data_file_path)
 
 def parse_args():
     global data_file_path
