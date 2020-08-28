@@ -465,6 +465,22 @@ def read_tickers_DH_remote(in_market: str):
     sym_list = df['Symbol'].to_list()
     return (sym_list)
 
+def get_all_div_yield_histories(in_tickers: list, in_market: str, in_data_path: str):
+    i=0
+    printProgressBar(0, len(in_tickers), prefix = f'{in_market} Yield History Progress:', suffix = 'Complete', length = 50)
+
+    
+    for curr_sym in in_tickers:
+        i += 1
+        printProgressBar(i, len(in_tickers), prefix = f'{in_market} Yield History Progress:', suffix = 'Complete', length = 50)
+        #curr_sym = curr_sym.replace('.', '_')
+        if not daily_yield_calc_history(in_market, in_data_path, curr_sym):
+            pass
+        else:
+            print(f"Error calculating {in_market} {curr_sym}")
+            
+    return 0
+
 # create daily yields based on daily price data set 
 # write to "yields" directory in datasets under project
 # calculate and write daily yields using last declared div 
@@ -486,11 +502,13 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # grab divdidend history for ticker
     try:
         data_file_path = in_data_path
-        dfs = pd.read_csv(f'{data_file_path}{in_market}/DH_div_history_{in_ticker}.csv', keep_default_na=False)
+        temp_tick = in_ticker.replace('.', '_')
+        #print(in_ticker)
+        dfs = pd.read_csv(f'{data_file_path}{in_market}/DH_div_history_{temp_tick}.csv', keep_default_na=False)
         div_path = data_file_path + "yield_history/"
         make_dir(div_path)
     except:
-        print(f"Could not find {data_file_path}{in_market}/DH_history_{in_ticker}.csv")
+        print(f"Could not find {data_file_path}{in_market}/DH_div_history_{temp_tick}.csv")
         return -1
     
     #print(dfs)
@@ -504,18 +522,19 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     except:
         print(f'Could not find weekly report for {in_market}')
         return -1
-    print(dfs3)
-    print(in_ticker)
+    
     # grab price history for ticker
     
     try:
         if in_market == 'tsx':
-            in_ticker_can = in_ticker + '.TO'
+            in_ticker_can = in_ticker.replace('.', '-')
+            in_ticker_can = in_ticker_can + '.TO'
             dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker_can}.csv')
         else:
+            in_ticker_us = in_ticker.replace('.', '-')
             dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv')
         
-        print(dfs2)
+        #print(dfs2)
     except:
         print(f"{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv")
         return -1
@@ -529,20 +548,25 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     result.fillna(method='ffill', inplace=True)
     result.drop(columns=['Close', 'High', 'Low', 'Dividends', 'symbol', 'market', 'date_epoch', 'Stock Splits'], inplace=True)
     
-    # frequency factor
-    freq = dfs3.loc[dfs3['Symbol'] == in_ticker]
-    #print(freq)
-    if freq.iloc[0]['div_freq'] == 'Q':
-        yield_factor = 4
-    elif freq.iloc[0]['div_freq'] == 'S':
-        yield_factor = 2
-    elif freq.iloc[0]['div_freq'] == 'M':
-        yield_factor = 12
-    elif freq.iloc[0]['div_freq'] == 'A':
-        yield_factor = 1
-    else:
-        # ignoring U and - for now
-        yield_factor = 0
+    try:
+        # frequency factor
+        freq = dfs3.loc[dfs3['Symbol'] == in_ticker]
+        #print(freq)
+        if freq.iloc[0]['div_freq'] == 'Q':
+            yield_factor = 4
+        elif freq.iloc[0]['div_freq'] == 'S':
+            yield_factor = 2
+        elif freq.iloc[0]['div_freq'] == 'M':
+            yield_factor = 12
+        elif freq.iloc[0]['div_freq'] == 'A':
+            yield_factor = 1
+        else:
+            # ignoring U and - for now
+            yield_factor = 0
+    except:
+        print("Error getting freq")
+        return -1
+    
     
     # yield calculation
     result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Open']
@@ -552,7 +576,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # write out yield history by exchange and ticker
     make_dir(f"{data_file_path}yield_history/")
     
-    print(f"Path to write out {data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv")
+    #print(f"Path to write out {data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv")
     result.to_csv(f"{data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv", index=0)
     
     return 0
@@ -615,7 +639,8 @@ def make_dir(path):
             print(f"Permission to create directory {path} DENIED ... quitting.")
             sys.exit(1)
     else:
-        print(f"Directory {path} already exists ... going to use it for temp ticker store")
+        #print(f"Directory {path} already exists ... going to use it for temp ticker store")
+        pass
 
 # Print iterations progress
 # taken from stack overflow: https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
