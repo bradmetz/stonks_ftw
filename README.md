@@ -7,6 +7,17 @@ In this project I will keep my notes on building my data collector, any files ne
 
 I am taking on this project more as a learning experience than to make money but who knows? I may find some interesting things. For those interested, I am also keeping a journal of snags I hit, solutions found with sources, and other observations.
 
+# Current state 
+
+My collector code is in a pretty good state pulling in various datasets from dividendhistory.org and yahoo finance (using yfinance).  Daily yields are being calculated as part of initialization and some initial work on peak and valley detection has been done in notebook.  Next step is to optimize peak and valley detection to find optimal buy and sell points.  The model I am using to start is to average out peak and valley values for dividend yield to identify buy and sell points for all dividend stocks.  
+
+# Future ideas
+  - work on dash enabled dash board and plotly based visualizations
+  - build an interface to dividendhistory data that is more consistent with yfinance python OO constructs.
+  - add functionality to enable on demand data fetching (useful for alerting and updating recommendation model)
+  - try adding functionality to provide buy, sell, hold query interface based on models
+  - try exploring models for non-dividend stocks using basic ratios and metrics (from financials, PE history, PB history, etc)
+
 # Initial sources to pull from
 
 I have looked at a number of sources to pull financial information. There is no shortage of providers if you are willing to pay. Free accounts at many of the services that provide data through API have call ceilings that would make it very difficult to test and grab data as aggressively as I would like. The main site I am using, given my focus on dividend paying stocks to start, is dividendhistory.org. They provide historic dividend data based on ticker symbols, closing price, company name, PE, PB, and close price. They also provide weekly reports for all dividend paying stocks with lots of fundamental data that may be useful.
