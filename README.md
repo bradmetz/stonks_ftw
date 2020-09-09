@@ -13,6 +13,8 @@ My collector code is in a pretty good state pulling in various datasets from div
 
 # Future ideas
   - work on dash enabled dash board and plotly based visualizations
+  - generate model files for each ticker offline using total and 10 year histories 
+  - consider generating model on the fly to allow for parameter tuning
   - build an interface to dividendhistory data that is more consistent with yfinance python OO constructs.
   - add functionality to enable on demand data fetching (useful for alerting and updating recommendation model)
   - try adding functionality to provide buy, sell, hold query interface based on models
