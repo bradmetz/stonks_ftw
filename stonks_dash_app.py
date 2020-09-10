@@ -13,11 +13,14 @@ import dash_html_components as html
 import pandas as pd
 import plotly.graph_objects as go
 from scipy.signal import find_peaks
+from dash.dependencies import Input, Output
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 app = dash.Dash()
+
+
 
 dfs5 = pd.read_csv('./datasets/yield_history/yield_history_nyse_T.csv')
 
@@ -101,6 +104,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     
     html.Label('Choose your Exchange', style={'color':colors['text']}),
     dcc.RadioItems(
+        id='in_market',
         options=[
             {'label': 'TSX', 'value': 'tsx'},
             {'label': 'NYSE', 'value':'nyse'},
@@ -111,11 +115,12 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         ),
     html.Label('Enter your ticker', style={'color':colors['text']}),
     dcc.Input(
+        id='in_tick',
         value='T',
         type = 'text'
         ),
     dcc.Graph(
-        id='Yield Graph Trial',
+        id='yield_graph',
         figure=fig
         ),         
 
@@ -141,6 +146,72 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     ]
 )    
     
+@app.callback(
+    Output(component_id='yield_graph', component_property='figure'),
+    [Input(component_id='in_market', component_property='value'),
+     Input(component_id='in_tick', component_property='value')]
+    )
+def update_graph(in_market, in_tick):
+    
+    dfs5 = pd.read_csv(f'./datasets/yield_history/yield_history_{in_market}_{in_tick}.csv')
+
+    value_array = dfs5['Daily Yield']
+    date_array = dfs5['Date']
+    peaks = find_peaks(value_array, prominence=0.001)[0]
+    valleys = find_peaks(-value_array, prominence=0.001)[0]
+
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        y=value_array,
+        mode='lines+markers',
+        name='Original Plot'
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=peaks,
+        y=[value_array[j] for j in peaks],
+        mode='markers',
+        marker=dict(
+            size=8,
+            color='red',
+            symbol='cross'
+            ),
+        name='Detected Peaks'
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=valleys,
+        y=[value_array[j] for j in valleys],
+        mode='markers',
+        marker=dict(
+            size=8,
+            color='green',
+            symbol='cross'
+            ),
+        name='Detected Valleys'
+    ))
+
+#fig.update_xaxes(date_array)
+
+    #fig.show()
+    print(f"Producing graph for {in_market} / {in_tick}")
+    total =0 
+    for temp in peaks:
+        total += value_array[temp] 
+    
+    peak_avg = total/len(peaks)
+    print(f"Peak average value (total data set) {peak_avg}")
+
+    total =0 
+    for temp in valleys:
+        total += value_array[temp] 
+    
+    valley_avg = total/len(valleys)
+    print(f"Vally average value (total data set) {valley_avg}")
+
+    return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
