@@ -546,7 +546,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     result = pd.merge(dfs, dfs2, on=['Date'], how='outer')
     result.sort_values(by='Date', inplace=True)
     result.fillna(method='ffill', inplace=True)
-    result.drop(columns=['Close', 'High', 'Low', 'Dividends', 'symbol', 'market', 'date_epoch', 'Stock Splits'], inplace=True)
+    result.drop(columns=['Open', 'High', 'Low', 'Dividends', 'symbol', 'market', 'date_epoch', 'Stock Splits'], inplace=True)
     
     try:
         # frequency factor
@@ -569,7 +569,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     
     
     # yield calculation
-    result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Open']
+    result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Close']
     # remove historic price records with no div
     result = result[result['Daily Yield'].notna()]
     
