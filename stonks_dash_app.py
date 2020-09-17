@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 from scipy.signal import find_peaks
 from dash.dependencies import Input, Output
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 
 app = dash.Dash()
