@@ -109,7 +109,10 @@ def trim_by_date(in_df: DataFrame, *args, **kwargs):
     in_df['Date'] = pd.to_datetime(in_df['Date'])
     mask = (in_df['Date']> start_date) & (in_df['Date']<=end_date)
     
-    return (in_df.loc[mask])
+    new_df = in_df.loc[mask]
+    new_df = new_df.reset_index(drop=True)
+    
+    return (new_df)
     
     
 
