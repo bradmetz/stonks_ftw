@@ -15,7 +15,29 @@ from pandas import DataFrame
 import plotly.graph_objects as go
 import numpy as np
 from scipy.signal import find_peaks
+import dash_bootstrap_components as dbc
 
+# pass dataframe 
+
+def generate_ticker_card(in_ticker, in_market):
+    out_card = html.Div(
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H5(f"Ticker:  {in_ticker}", className='card-title'),
+                    html.P([
+                            "Company Name: "
+                            ],
+                        className='card-text',            
+                    ),
+                    html.P(["Price: 1 MILLION DOLLARS"], className='card-text',),
+                    html.P(["Recommendation: SELL"], className='card-text',)
+                ]
+            ),  
+        )   
+    )
+
+    return out_card
 
 # pass a dataframe with same schema as yield_history dataset
 
