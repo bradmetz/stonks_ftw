@@ -13,6 +13,7 @@ import yfinance as yf
 from datetime import date
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta, FR
+import stonks_extract as se
 
 
 # update each price history document for each ticker based on last 
@@ -65,6 +66,7 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
         else:
             pass
     return 0
+
 # generalize function to take a list of tickers instead of a pandas dataframe
 # returns 0 on success -1 otherwise
 # default time period is "max" 
@@ -270,36 +272,21 @@ def get_div_histories_DH(in_file_path):
 
 # ticker lists stores in root data directory
 # in_file_path is the root dataset directory with trailing '/'
+
+
+# <<< TO BE DEPRECATED ONCE stonks_output.write_to_csv complete 
+# all instances of getTickers to be replaced with get_tickers_divhistory and write_to_csv
+ 
 def getTickers(in_file_path):
     data_file_path = in_file_path
-    try:
-        dfs = pd.read_html('https://dividendhistory.org/tsx', keep_default_na=False, header=0, index_col=0)
-    except:
-        print("Could not get TSX ticks")
-        sys.exit(1)
-    df = dfs[0]
-    df['Exchange'] = "TSX"
-    df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+    
+    df = se.get_tickers_divhistory('tsx')    
     df.to_csv(f'{data_file_path}DH_tickers_tsx.csv')
     
-    try:
-        dfs = pd.read_html('https://dividendhistory.org/nyse', keep_default_na=False, header=0, index_col=0)
-    except:
-        print("Could not get NYSE ticks")
-        sys.exit(1)
-    df = dfs[0]
-    df['Exchange'] = "NYSE"
-    df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+    df = se.get_tickers_divhistory('nyse')
     df.to_csv(f'{data_file_path}DH_tickers_nyse.csv')
     
-    try:
-        dfs = pd.read_html('https://dividendhistory.org/nasdaq', keep_default_na=False, header=0, index_col=0)
-    except:
-        print("Could not get NASDAQ")
-        sys.exit(1)
-    df = dfs[0]
-    df['Exchange'] = "NASDAQ"
-    df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+    df = se.get_tickers_divhistory('nasdaq')
     df.to_csv(f'{data_file_path}DH_tickers_nasdaq.csv')
 
 
