@@ -123,32 +123,6 @@ def generate_yield_graph_from_df(in_df:DataFrame):
         ))
     
     return fig
-'''    
-    fig.update_layout(shapes=[
-        dict(
-            type='line',
-            yref='y', y0=peak_avg, y1=peak_avg,
-            xref='x', x0=-100, x1=len(dfs.index),    
-            line=dict(
-                    color="Green",
-                    width=4,
-                    dash="dashdot"
-                    )
-            ),
-        
-        dict(
-            type='line',
-            yref='y', y0=valley_avg, y1=valley_avg,
-            xref='x', x0=-100, x1=len(dfs.index),
-            line=dict(
-                    color="Red",
-                    width=4,
-                    dash="dashdot"
-                    )
-            )
-        ])
-'''
-
 
 # generate yield graph figure for given ticker 
 # returns a graph_objects Figure object for use in dashboard
@@ -235,35 +209,6 @@ def generate_yield_graph(in_ticker, in_market, in_home_path):
         ))
     
     return fig
-'''    
-    fig.update_layout(shapes=[
-        dict(
-            type='line',
-            yref='y', y0=peak_avg, y1=peak_avg,
-            xref='x', x0=-100, x1=len(dfs.index),    
-            line=dict(
-                    color="Green",
-                    width=4,
-                    dash="dashdot"
-                    )
-            ),
-        
-        dict(
-            type='line',
-            yref='y', y0=valley_avg, y1=valley_avg,
-            xref='x', x0=-100, x1=len(dfs.index),
-            line=dict(
-                    color="Red",
-                    width=4,
-                    dash="dashdot"
-                    )
-            )
-        ])
-'''
-
-
-
-
 
 def generate_price_graph(in_ticker, in_market, in_home_path):
     
