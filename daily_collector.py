@@ -20,7 +20,8 @@ options to consider
 import sys, getopt
 #import pandas as pd
 #from datetime import date, timedelta 
-import stonks_utils
+import stonks_utils as su
+import stonks_extract as se
 
 def main():
     
@@ -48,21 +49,23 @@ def main():
     # get DH weekly
     #   run dl_and_write_DH_reports with update=True to grab missing DH weekly reports
     if price is True:
-        ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'tsx')
-        stonks_utils.update_ticker_price_records(ticks, './datasets/', 'TSX' )
-        ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nyse')
-        stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NYSE' )
-        ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nasdaq')
-        stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NASDAQ' )
+        for exc in su.MARKETS:
+            ticks = se.get_tickers_divhistory_local('./datasets/', f'DH_tickers_{exc}.csv')
+            su.update_ticker_price_records(ticks, './datasets/', exc )
+            
+            #ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nyse')
+            #stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NYSE' )
+            #ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nasdaq')
+            #stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NASDAQ' )
     
     # weekly report updates based on last report
     if weekly is True:
-        stonks_utils.dl_and_write_DH_reports(data_file_path, "USA", update=True)
-        stonks_utils.dl_and_write_DH_reports(data_file_path, "CAN", update=True)
+        su.dl_and_write_DH_reports(data_file_path, "USA", update=True)
+        su.dl_and_write_DH_reports(data_file_path, "CAN", update=True)
 
    # update historic dividend records
     if divs is True:
-        stonks_utils.get_div_histories_DH(data_file_path)      
+        su.get_div_histories_DH(data_file_path)      
     
     return 0
     
@@ -91,7 +94,7 @@ def parse_args():
             divs=True
             print("getting dividend updates")
             
-    stonks_utils.make_dir(data_file_path)
+    su.make_dir(data_file_path)
     
 def usage():
     print ('-----------------------------------------------------------')

@@ -30,6 +30,9 @@ MARKETS = ('tsx', 'nyse', 'nasdaq')
 
 # lazy solution is to just run full history collect and 
 # overwrite full csv files each night
+
+# should be migrated to a stonks_flow
+
 def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:str):
     data_file_path = in_file_path
     data_file_path = data_file_path + 'price_history/' 
@@ -44,7 +47,7 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
         ret_df = pd.DataFrame()
         printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
         curr_sym = curr_sym.replace('.', '-')
-        if in_market == 'TSX':
+        if in_market == 'tsx':
             curr_sym = curr_sym + '.TO'
         
         # get last update date
@@ -440,7 +443,7 @@ def get_last_weekly_report_date(in_country):
 # returns a list of tickers or -1 if failed
 def read_tickers_DH_local(in_datapath: str, in_market: str):
     
-    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
+    if in_market!= 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
         print('Market must be one of tsx, nyse, nasdaq')
         return -1
     
