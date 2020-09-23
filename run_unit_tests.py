@@ -38,6 +38,9 @@ def main():
         print("get_tickers - invalid string test - Passed")
     except AssertionError:
         print("get_tickers - invalid string test - Failed")
+        
+        
+    
 
 if __name__ == "__main__":
     main()

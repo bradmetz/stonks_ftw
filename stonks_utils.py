@@ -14,7 +14,14 @@ from datetime import date
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta, FR
 import stonks_extract as se
+import stonks_output as so
 
+
+# Globals for use across operations
+
+SUCCESS = 0
+FAILURE = -1
+MARKETS = ('tsx', 'nyse', 'nasdaq')
 
 # update each price history document for each ticker based on last 
 # date recorded up to yesteday 
@@ -276,18 +283,29 @@ def get_div_histories_DH(in_file_path):
 
 # <<< TO BE DEPRECATED ONCE stonks_output.write_to_csv complete 
 # all instances of getTickers to be replaced with get_tickers_divhistory and write_to_csv
+# keeping for backward compatibility and example of extract and output flow
  
-def getTickers(in_file_path):
-    data_file_path = in_file_path
+#def getTickers(in_file_path):
+ #   data_file_path = in_file_path
+  #  
+   ##if so.df_to_csv(df, data_file_path, "DH_tickers_tsx.csv")==FAILURE:
+     #   print("Error writing DH_tickers_tsx.csv")
+        
+    #df.to_csv(f'{data_file_path}DH_tickers_tsx.csv')
     
-    df = se.get_tickers_divhistory('tsx')    
-    df.to_csv(f'{data_file_path}DH_tickers_tsx.csv')
+   # df = se.get_tickers_divhistory('nyse')
+    #if so.df_to_csv(df, data_file_path, "DH_tickers_nyse.csv")==FAILURE:
+     #   print("Error writing DH_tickers_nyse.csv")
     
-    df = se.get_tickers_divhistory('nyse')
-    df.to_csv(f'{data_file_path}DH_tickers_nyse.csv')
     
-    df = se.get_tickers_divhistory('nasdaq')
-    df.to_csv(f'{data_file_path}DH_tickers_nasdaq.csv')
+    #df.to_csv(f'{data_file_path}DH_tickers_nyse.csv')
+    
+   # df = se.get_tickers_divhistory('nasdaq')
+    #if so.df_to_csv(df, data_file_path, "DH_tickers_nadaq.csv")==FAILURE:
+     #   print("Error writing DH_tickers_nasdaq.csv")
+    
+    
+    #df.to_csv(f'{data_file_path}DH_tickers_nasdaq.csv')
 
 
 #return 0 on success and -1 on error
@@ -616,7 +634,7 @@ def str_date_to_epoch(in_date_str):
     date_epoch = datetime.datetime.strptime(in_date_str, "%Y-%m-%d")
     return date_epoch.timestamp()
 
-
+# returns 0 on success and -1 on error
 def make_dir(path):
     if not os.path.exists(path):
         try:
@@ -624,11 +642,9 @@ def make_dir(path):
             print(f"Directory {path} created")
         except PermissionError:
             print(f"Permission to create directory {path} DENIED ... quitting.")
-            sys.exit(1)
-    else:
-        #print(f"Directory {path} already exists ... going to use it for temp ticker store")
-        pass
-
+            return FAILURE
+    return SUCCESS
+        
 # Print iterations progress
 # taken from stack overflow: https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):

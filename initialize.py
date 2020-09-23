@@ -12,6 +12,7 @@ can be run with no parameters
 import sys, getopt
 import pandas as pd
 import stonks_utils
+import stonks_flows as sf
 
 def main():
     
@@ -19,7 +20,7 @@ def main():
     data_file_path = "./datasets/"
     parse_args()
     
-    stonks_utils.getTickers(data_file_path)
+    sf.getTickers(data_file_path)
     
     
     stonks_utils.get_div_histories_DH(data_file_path)

@@ -18,6 +18,7 @@ Version 0.1
 import pandas as pd
 import datetime
 from urllib.error import HTTPError
+import stonks_utils as su
 
 # get list of tickers from dividendhistory.org
 # in_market is one of tsx, nyse, nasdaq
@@ -31,13 +32,13 @@ def get_tickers_divhistory(in_market: str):
     accepted_strings = {'tsx', 'nyse', 'nasdaq'}
     if not (in_market in accepted_strings):
         print('in_market must be one of tsx, nyse, nasdaq')
-        return -1
+        return su.FAILURE
     
     try:
         dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0, index_col=0)
     except HTTPError as err:
         print(f"Could not get TSX ticks: HTTP Code: {err.code}  Path Tried: {err.url}")
-        return -1
+        return su.FAILURE
     df = dfs[0]
     df['Exchange'] = "TSX"
     df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
