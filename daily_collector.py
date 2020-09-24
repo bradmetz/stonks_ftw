@@ -51,7 +51,7 @@ def main():
     if price is True:
         for exc in su.MARKETS:
             ticks = se.get_tickers_divhistory_local('./datasets/', f'DH_tickers_{exc}.csv')
-            su.update_ticker_price_records(ticks, './datasets/', exc )
+            su.update_ticker_price_records(ticks, './datasets/price_history/', exc )
             
             #ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nyse')
             #stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NYSE' )

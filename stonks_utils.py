@@ -34,8 +34,10 @@ MARKETS = ('tsx', 'nyse', 'nasdaq')
 # should be migrated to a stonks_flow
 
 def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:str):
+    
+    # full path to be provided going forward
     data_file_path = in_file_path
-    data_file_path = data_file_path + 'price_history/' 
+    #data_file_path = data_file_path + 'price_history/' 
     
     # get last record date from file
     i=0
@@ -146,173 +148,25 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
     return 0
         
 
-
+# TO BE MOVED TO stonk_flow.py
+# get all dividend histories from dividendhistory.org and save to provided file path
 # in_file_path is the root dataset path with trailing '/' 
 # other directories will be created in here so should be writable
-def get_div_histories_DH(in_file_path):
+#def get_div_histories_DH(in_file_path):
     
-    data_file_path = in_file_path
-    # TSX dividend history download 
-    dfs = pd.read_csv(f'{data_file_path}DH_tickers_tsx.csv', keep_default_na=False)
-    ticks = dfs.iloc[:, 0:1]
-    div_path = data_file_path + "tsx/"
-    make_dir(div_path)
-    i=0
-    printProgressBar(0, len(ticks), prefix = 'TSX Div History Progress:', suffix = 'Complete', length = 50)
-    # loop throuigh all tickers and create new csv for each div stock
-    for (sym_index, sym_val) in ticks.iteritems():
-        #needed to deal with '.'s in ticker symbols (eg ATB.B)
-        for sym in sym_val.values:
-            i+=1
-            printProgressBar(i, len(ticks), prefix = 'TSX Div History Progress:', suffix = 'Complete', length = 50)
-            sym = sym.replace('.', '_')
-            try:
-                dfs = pd.read_html(f'https://dividendhistory.org/payout/tsx/{sym}/')
-            except:
-                print(f"Could not get TSX Div History for {sym}")
-            # small decision block to deal with optional anoucements header on some pages
-            if len(dfs)==3:
-                df = dfs[0]
-            elif len(dfs)==4:
-                df = dfs[1]
-            else:
-                print('something else going on here')
-            # drop the last column (i can calculate div increase percentages myself) 
-            df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
-            df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
-            df = df.iloc[:, :-1]
-            df['Exchange'] = 'TSX'
-            df['Symbol'] = sym.replace('_', '.')
-            # fill any empty Payout Date fields with todays date
-            # this is a work around for an annoying gap in dataset
-            curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
-            df = df.fillna(value=curr_date)
+#    data_file_path = in_file_path
+    
+#    for exc in MARKETS:
+#        ticks = se.get_tickers_divhistory(exc)
+#        div_path = data_file_path + f"{exc}/"
+#        i=0
+#        printProgressBar(0, len(ticks), prefix = f'{exc} Div History Progress:', suffix = 'Complete', length = 50)
+#        for sym in ticks: 
+#            i+=1
+#            printProgressBar(i, len(ticks), prefix = f'{exc} Div History Progress:', suffix = 'Complete', length = 50)
+#            dfs = se.get_div_history_DH(sym, exc)
+#            so.df_to_csv(dfs, div_path, f"DH_div_history_{sym}.csv", False)
             
-            df['ex-div date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Ex-Dividend Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            df['payout date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Payout Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            
-            df.to_csv(f'{div_path}DH_div_history_{sym}.csv', index=False)
-    
-    # NYSE dividend history download
-    dfs = pd.read_csv(f'{data_file_path}DH_tickers_nyse.csv', keep_default_na=False)
-    ticks = dfs.iloc[:, 0:1]
-    div_path = data_file_path + "nyse/"
-    make_dir(div_path)
-    # loop throuigh all tickers and create new csv for each div stock
-    i=0
-    printProgressBar(0, len(ticks), prefix = 'NYSE Div History Progress:', suffix = 'Complete', length = 50)
-    for (sym_index, sym_val) in ticks.iteritems():
-        #needed to deal with '.'s in ticker symbols (eg ATB.B)
-        for sym in sym_val.values:
-            i+=1
-            printProgressBar(i, len(ticks), prefix = 'NYSE Div History Progress:', suffix = 'Complete', length = 50)
-            sym = sym.replace('.', '_')
-            try:
-                dfs = pd.read_html(f'https://dividendhistory.org/payout/{sym}/')
-            except:
-                print(f"Could not get NYSE Div History for {sym}")
-            # small decision block to deal with optional anoucements header on some pages
-            if len(dfs)==3:
-                df = dfs[0]
-            elif len(dfs)==4:
-                df = dfs[1]
-            else:
-                print('something else going on here')
-            # drop the last column (i can calculate div increase percentages myself) 
-            df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
-            df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
-            df = df.iloc[:, :-1]
-            df['Exchange'] = 'NYSE'
-            df['Symbol'] = sym.replace('_', '.')
-            
-             # fill any empty Payout Date fields with todays date
-            # this is a work around for an annoying gap in dataset
-            curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
-            df = df.fillna(value=curr_date)
-            
-            # need to check for post processing dataframes that are empty.
-            # this occurs when a company has just started paying dividends since 
-            # future dividend records are currenlty removed ... may look at adding them back in
-        
-            df['ex-div date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Ex-Dividend Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            df['payout date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Payout Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            df.to_csv(f'{div_path}DH_div_history_{sym}.csv', index=False)
-    
-    # NASDAQ dividend history download
-    dfs = pd.read_csv(f'{data_file_path}DH_tickers_nasdaq.csv', keep_default_na=False)
-    ticks = dfs.iloc[:, 0:1]
-    div_path = data_file_path + "nasdaq/"
-    make_dir(div_path)
-    # loop throuigh all tickers and create new csv for each div stock
-    i=0
-    printProgressBar(0, len(ticks), prefix = 'NASDAQ Div History Progress:', suffix = 'Complete', length = 50)
-    for (sym_index, sym_val) in ticks.iteritems():
-        #needed to deal with '.'s in ticker symbols (eg ATB.B)
-        for sym in sym_val.values:
-            i+=1
-            printProgressBar(i, len(ticks), prefix = 'NASDAQ Div History Progress:', suffix = 'Complete', length = 50)
-            sym = sym.replace('.', '_')
-            try:
-                dfs = pd.read_html(f'https://dividendhistory.org/payout/{sym}/')
-            except:
-                print(f"Could not get NASDAQ Div History for {sym}")
-            # small decision block to deal with optional anoucements header on some pages
-            if len(dfs)==3:
-                df = dfs[0]
-            elif len(dfs)==4:
-                df = dfs[1]
-            else:
-                print('something else going on here')
-            # drop the last column (i can calculate div increase percentages myself) 
-            df['Cash Amount'] = df['Cash Amount'].str.replace('$', '')
-            df['Cash Amount'] = df['Cash Amount'].str.replace('\*\*', '')
-            df = df.iloc[:, :-1]
-            df['Exchange'] = 'NASDAQ'
-            df['Symbol'] = sym.replace('_', '.')
-            
-            # fill any empty Payout Date fields with todays date
-            # this is a work around for an annoying gap in dataset
-            curr_date = {"Payout Date": date.today().strftime("%Y-%m-%d")}
-            df = df.fillna(value=curr_date)
-            
-            df['ex-div date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Ex-Dividend Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            df['payout date epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Payout Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            
-            df.to_csv(f'{div_path}DH_div_history_{sym}.csv', index=False)
-
-# ticker lists stores in root data directory
-# in_file_path is the root dataset directory with trailing '/'
-
-
-# <<< TO BE DEPRECATED ONCE stonks_output.write_to_csv complete 
-# all instances of getTickers to be replaced with get_tickers_divhistory and write_to_csv
-# keeping for backward compatibility and example of extract and output flow
- 
-#def getTickers(in_file_path):
- #   data_file_path = in_file_path
-  #  
-   ##if so.df_to_csv(df, data_file_path, "DH_tickers_tsx.csv")==FAILURE:
-     #   print("Error writing DH_tickers_tsx.csv")
-        
-    #df.to_csv(f'{data_file_path}DH_tickers_tsx.csv')
-    
-   # df = se.get_tickers_divhistory('nyse')
-    #if so.df_to_csv(df, data_file_path, "DH_tickers_nyse.csv")==FAILURE:
-     #   print("Error writing DH_tickers_nyse.csv")
-    
-    
-    #df.to_csv(f'{data_file_path}DH_tickers_nyse.csv')
-    
-   # df = se.get_tickers_divhistory('nasdaq')
-    #if so.df_to_csv(df, data_file_path, "DH_tickers_nadaq.csv")==FAILURE:
-     #   print("Error writing DH_tickers_nasdaq.csv")
-    
-    
-    #df.to_csv(f'{data_file_path}DH_tickers_nasdaq.csv')
-
-
-#return 0 on success and -1 on error
-#in_file_path = base data directory ... subfolders will be created in here
 
 # could make year an optional parameter
 # use year OR update (which grabs all reports from last report)
@@ -441,37 +295,37 @@ def get_last_weekly_report_date(in_country):
 # grabs the tickers symbols from a local list generated by stonks_utils 
 #
 # returns a list of tickers or -1 if failed
-def read_tickers_DH_local(in_datapath: str, in_market: str):
-    
-    if in_market!= 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
-        print('Market must be one of tsx, nyse, nasdaq')
-        return -1
-    
-    try:
-        dfs = pd.read_csv(f'{in_datapath}DH_tickers_{in_market}.csv', keep_default_na=False)
-    except:
-        print(f"Could not find file {in_datapath}DH_tickers_{in_market}.csv")
-        return -1
-    sym_list = dfs['Symbol'].to_list()
-    return (sym_list)
+#def read_tickers_DH_local(in_datapath: str, in_market: str):
+#    
+#    if in_market!= 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
+#        print('Market must be one of tsx, nyse, nasdaq')
+#        return -1
+#    
+#    try:
+#        dfs = pd.read_csv(f'{in_datapath}DH_tickers_{in_market}.csv', keep_default_na=False)
+#    except:
+#        print(f"Could not find file {in_datapath}DH_tickers_{in_market}.csv")
+#        return -1
+#    sym_list = dfs['Symbol'].to_list()
+#    return (sym_list)
 
 # grabs list of tickers from dividendhistory.org
 # 
 # returns symbols as a list or -1 on failure
 
-def read_tickers_DH_remote(in_market: str):
-    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
-        print('Market must be one of tsx, nyse, nasdaq')
-        return -1
-    try:
-        dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0)
-        print(f'https://dividendhistory.org/{in_market}')
-    except:
-        print(f"Could not connect to {in_market} ticks")
-        return -1
-    df = dfs[0]
-    sym_list = df['Symbol'].to_list()
-    return (sym_list)
+#def read_tickers_DH_remote(in_market: str):
+#    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
+#        print('Market must be one of tsx, nyse, nasdaq')
+#        return -1
+#    try:
+#        dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0)
+#        print(f'https://dividendhistory.org/{in_market}')
+#    except:
+#        print(f"Could not connect to {in_market} ticks")
+#        return -1
+#    df = dfs[0]
+#    sym_list = df['Symbol'].to_list()
+#    return (sym_list)
 
 def get_all_div_yield_histories(in_tickers: list, in_market: str, in_data_path: str):
     i=0
