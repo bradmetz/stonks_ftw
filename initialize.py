@@ -24,9 +24,10 @@ def main():
     sf.get_div_histories_DH(data_file_path)
     
     #stonks_utils.get_div_histories_DH(data_file_path)
-    
-    stonks_utils.dl_and_write_DH_reports(data_file_path, "USA", year=2019)
-    stonks_utils.dl_and_write_DH_reports(data_file_path, "CAN", year=2019)
+    dh_reports_path = data_file_path + 'weekly_divhistory_reports/'
+    sf.dl_and_write_DH_reports(dh_reports_path, "nyse", year=2019)
+    sf.dl_and_write_DH_reports(dh_reports_path, "tsx", year=2019)
+    #stonks_utils.dl_and_write_DH_reports(data_file_path, "CAN", year=2019)
     
     # need to pass tickers as a list
     dfs = pd.read_csv('./datasets/DH_tickers_tsx.csv', keep_default_na=False)

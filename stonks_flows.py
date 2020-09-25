@@ -9,6 +9,7 @@
 import stonks_utils as su
 import stonks_extract as se
 import stonks_output as so
+import pandas as pd
 
 LOCAL_DATA_DIR = './datasets/'
 
@@ -45,3 +46,63 @@ def getTickers(in_file_path):
             print(f"Error writing DH_tickers_{exc}.csv")
             
     return su.SUCCESS
+
+# flow to download all dividendhistory weekly reports and save to separate csvs
+# for later use from a given market
+# using datetime.date as default date container
+
+# in_file_path is the full path to where the reports are stored
+
+def dl_and_write_DH_reports(in_file_path, in_market, *args, **kwargs):
+    
+    in_year = kwargs.get('year')
+    update = kwargs.get('update')
+    fridays = {}
+    
+    # given the year, gets reports for all Fridays from that year forward
+    # not reports prior to 2019
+    
+    if in_year != None:    
+        if in_year < 2019:
+            print("There are no reports prior to 2019.  Enter year 2019 or greater")
+            return su.FAILURE
+        elif in_year>2018:
+            print(in_year)
+            fridays = su.all_fridays_from(in_year)
+            print('running from year')
+        else:
+            print("No fridays returned")
+            return su.FAILURE
+    
+    
+    if update==True:
+        fridays = su.fridays_since_last_DH_report(in_file_path, in_market)
+        if len(fridays)<1:
+            print("no new fridays returned on update")
+            return su.FAILURE
+    
+    if in_market in ('nyse', 'nasdaq'):
+        in_country = 'USA'
+        in_file_path += 'USA/'
+    elif in_market == 'tsx':
+        in_country = 'CAN'
+        in_file_path += 'CAN/'
+    else:
+        print("Market {in_market} is invalid")
+        return se.FAILURE
+    # download reports for all fridays in fridays stonks_extract
+    # write out using stonks_output
+    i=0
+    su.printProgressBar(0, len(fridays), prefix = '{0} Weekly Report Progress:'.format(in_market), suffix = 'Complete', length = 50)
+    for fri in fridays:
+        
+        i +=1
+        su.printProgressBar(i, len(fridays), prefix = '{0} Weekly Report Progress:'.format(in_market), suffix = 'Complete', length = 50)
+        df = se.get_DH_weekly_report(in_market, fri)
+        if type(df) != pd.DataFrame:
+            print(f"no report for {in_market} on {fri.year}-{fri.month}-{fri.day}")
+        elif so.df_to_csv(df, in_file_path, f"div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv", False)==su.FAILURE:
+            print(f"Error writing div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv")
+    return su.SUCCESS
+    
+    

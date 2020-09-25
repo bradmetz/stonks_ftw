@@ -5,6 +5,8 @@ run_unit_tests.py -- Collection of unit tests for all stonks modules and functio
 
 """
 import stonks_extract as se
+import stonks_utils as su
+import datetime
 
 
 def main():
@@ -47,6 +49,52 @@ def main():
         print("get_tickers - list return test - Failed")
         
         
+        
+    print(">>> DH Weekly report tests")    
+        
+    try:
+        
+        date_str  = "2020-09-18"
+        in_date = datetime.date.fromisoformat(date_str)
+        #in_date = datetime.datetime.strptime(date_str, "%Y-%m-%d"
+        df = se.get_DH_weekly_report('nyse', in_date)
+        assert(len(df) != 0)
+        print("DH weekly report - df nyse return test - Passed")
+    except AssertionError:
+        print("DH weekly report - df nyse return test - Failed")
+        
+    try:
+        
+        date_str  = "2020-09-24"
+        in_date = datetime.date.fromisoformat(date_str)
+        #in_date = datetime.datetime.strptime(date_str, "%Y-%m-%d"
+        df = se.get_DH_weekly_report('nyse', in_date)
+        assert(df == su.FAILURE)
+        print("DH weekly report - not Friday test - Passed")
+    except AssertionError:
+        print("DH weekly report - not Friday test - Failed")
+    
+    try:
+        
+        date_str  = "2020-09-18"
+        in_date = datetime.date.fromisoformat(date_str)
+        #in_date = datetime.datetime.strptime(date_str, "%Y-%m-%d"
+        df = se.get_DH_weekly_report('tsx', in_date)
+        assert(len(df) != 0)
+        print("DH weekly report - tsx test - Passed")
+    except AssertionError:
+        print("DH weekly report - tsx test - Failed")
+        
+    try:
+        
+        date_str  = "2020-09-18"
+        in_date = datetime.date.fromisoformat(date_str)
+        #in_date = datetime.datetime.strptime(date_str, "%Y-%m-%d"
+        df = se.get_DH_weekly_report('ts', in_date)
+        assert(df == su.FAILURE)
+        print("DH weekly report - invalid market test - Passed")
+    except AssertionError:
+        print("DH weekly report - invalid market test - Failed")
     
 
 if __name__ == "__main__":

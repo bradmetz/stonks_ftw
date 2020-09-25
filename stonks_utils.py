@@ -148,148 +148,20 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
     return 0
         
 
-# TO BE MOVED TO stonk_flow.py
-# get all dividend histories from dividendhistory.org and save to provided file path
-# in_file_path is the root dataset path with trailing '/' 
-# other directories will be created in here so should be writable
-#def get_div_histories_DH(in_file_path):
-    
-#    data_file_path = in_file_path
-    
-#    for exc in MARKETS:
-#        ticks = se.get_tickers_divhistory(exc)
-#        div_path = data_file_path + f"{exc}/"
-#        i=0
-#        printProgressBar(0, len(ticks), prefix = f'{exc} Div History Progress:', suffix = 'Complete', length = 50)
-#        for sym in ticks: 
-#            i+=1
-#            printProgressBar(i, len(ticks), prefix = f'{exc} Div History Progress:', suffix = 'Complete', length = 50)
-#            dfs = se.get_div_history_DH(sym, exc)
-#            so.df_to_csv(dfs, div_path, f"DH_div_history_{sym}.csv", False)
-            
-
-# could make year an optional parameter
-# use year OR update (which grabs all reports from last report)
-# update flag grab last friday downloaded from dataset and get all subsequent
-# reports
-# year=2019 
-# update=True
-
-# TO REFACTOR - extract code for getting single report and add to stonks_extract - return df
-#       - normalize markets paramters to use su.MARKETS
-#       - convert rest to stonks_flow (to csv from stonks_output should work)
-
-def dl_and_write_DH_reports(in_file_path, market, *args, **kwargs):
-    
-    in_year = kwargs.get('year')
-    update = kwargs.get('update')
-    fridays = {}    
-    
-    if market != "USA" and market!= "CAN":
-        print("Market string must be one of USA or CAN")
-        return -1
-    
-    if in_year != None:    
-        if in_year < 2019:
-            print("There are no reports prior to 2019.  Enter year 2019 or greater")
-            return -1
-        elif in_year>2018:
-            print(in_year)
-            fridays = all_fridays_from(in_year=in_year)
-            print('running from year')
-        else:
-            print("No fridays returned")
-            return -1
-    
-    
-    if update==True:
-        fridays = all_fridays_from(update=True, in_market=market)
-        if len(fridays)<1:
-            print("no new fridays returned on update")
-            return 1
-    
-    write_file = True
-    data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
-    make_dir(data_file_path)
-    
-    i = 0
-    print(fridays)
-    printProgressBar(0, len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix = 'Complete', length = 50)
-    for day in fridays:      
-        data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
-        web_path = 'https://dividendhistory.org/reports/{3}/{2}-{1}-{0}-report.htm'.format(day.strftime("%d"), day.strftime("%m"), day.year, market)
-        data_file_path = data_file_path + "div_history_report-{3}-{2}-{1}-{0}.csv".format(day.strftime("%d"), day.strftime("%m"), day.year, market)
-        try:
-            dfs = pd.read_html(web_path, keep_default_na=False)
-            write_file = True
-            i+=1
-            printProgressBar(i + 1, len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix = 'Complete', length = 50)
-        except:
-            #print(f"File not found: {web_path}")
-            write_file = False
-        
-        # write_file flag is used to indicate the webresource was found
-        # and prevents trying to write a non-existent dataframe
-        if write_file: 
-            df = dfs[0]
-            df = df.iloc[:, :16]
-            colnames = []
-            for col in df.columns:
-                colnames.append(col[1])
-            df.columns = colnames
-            # remove sector category rows from data
-            # this function assumes that all cells are populated with same string
-            # when its a header row
-            for row_num, row in df.iterrows():
-                if row['Price'] == row['Name']:
-                    df = df.drop(row_num)
-            
-            date_str  = "{0}-{1}-{2}".format(day.year, day.strftime("%m"), day.strftime("%d"))
-            df['report_date_epoch'] = int(((datetime.datetime.strptime(date_str, "%Y-%m-%d")).timestamp())*1000)
-            # strip % from yld and PayRto
-            df['Yld'] = df['Yld'].map(lambda x: x.lstrip('').rstrip('%'))
-            df['PayRto'] = df['PayRto'].map(lambda x: x.lstrip('').rstrip('%'))
-            
-            # split div frequency from ex-div date
-            # had to run in a try statement because of at least one report 
-            # that had no dates, just requency for ex-div date .. if this happens,
-            # whole div-freq column is set to -
-            try:
-                df['div_freq'] = (df['Ex-Div'].str.split(pat=r'\d\d\d\d-\d\d-\d\d', expand=True))[1]
-                df['Ex-Div'] = df['Ex-Div'].map(lambda x: x.lstrip('').rstrip('AQSMU'))
-            except:
-                df['div_freq'] = "-"
-                pass
-            # need to reinsert nans for whitespace cells as nans are removed on import
-            # once nans are back in, fillnan with - 
-            # all of this is because of one ticker symbol (NA) which is interpreted as a NaN on import
-            # unless keep_default_na=false
-            df = df.replace(r'^\s*$', np.nan, regex=True)
-            df = df.fillna(value='-')
-            df['market'] = market            
-            try:
-                df['ex_div_epoch'] = df.apply (lambda x: "-" if x['Ex-Div'] == "-" else int(((datetime.datetime.strptime(x['Ex-Div'], "%Y-%m-%d")).timestamp())*1000), axis=1)
-            except:
-                df['ex_div_epoch'] = "-"
-                #print("Exception tripped")
-                pass
-            # write out the fixed up report
-            df.to_csv(data_file_path, index=0)
-    printProgressBar(len(fridays), len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix= 'Complete', length=50)
-    return 0
-
 # in_country is either CAN or USA
-
 # TO REFACTOR - generalize for local store anywhere (from csv) and add to 
 #    stonks_extract
 
-def get_last_weekly_report_date(in_country):
+def get_last_weekly_report_date(in_country, in_path):
     
     if in_country!='USA' and in_country!='CAN':
         print("in_country must be one of CAN or USA")
         return -1
-    
-    dates = os.listdir(f'./datasets/weekly_divhistory_reports/{in_country}')
+    try: 
+        dates = os.listdir(f'{in_path}{in_country}')
+    except FileNotFoundError:
+        print(f"Dir {in_path}{in_country} no found")
+        return FAILURE
     dates = [item.lstrip(f'div_history_report-{in_country}-') for item in dates]
     dates = [item.rstrip('.csv') for item in dates]
 
@@ -298,40 +170,6 @@ def get_last_weekly_report_date(in_country):
 
     return maxdate
     
-# grabs the tickers symbols from a local list generated by stonks_utils 
-#
-# returns a list of tickers or -1 if failed
-#def read_tickers_DH_local(in_datapath: str, in_market: str):
-#    
-#    if in_market!= 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
-#        print('Market must be one of tsx, nyse, nasdaq')
-#        return -1
-#    
-#    try:
-#        dfs = pd.read_csv(f'{in_datapath}DH_tickers_{in_market}.csv', keep_default_na=False)
-#    except:
-#        print(f"Could not find file {in_datapath}DH_tickers_{in_market}.csv")
-#        return -1
-#    sym_list = dfs['Symbol'].to_list()
-#    return (sym_list)
-
-# grabs list of tickers from dividendhistory.org
-# 
-# returns symbols as a list or -1 on failure
-
-#def read_tickers_DH_remote(in_market: str):
-#    if in_market != 'tsx' and in_market != 'nyse' and in_market != 'nasdaq':
-#        print('Market must be one of tsx, nyse, nasdaq')
-#        return -1
-#    try:
-#        dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0)
-#        print(f'https://dividendhistory.org/{in_market}')
-#    except:
-#        print(f"Could not connect to {in_market} ticks")
-#        return -1
-#    df = dfs[0]
-#    sym_list = df['Symbol'].to_list()
-#    return (sym_list)
 
 
 # TO REFACTOR - add to stonks_flow to create all dividend yield records 
@@ -461,15 +299,14 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
 
 # returns an array of datetime objects of all fridays from the year given 
 # to the last Friday from the current day
-# use update=True with in_market=USA or CAN 
 # use in_year=2019 - this is used for dataset initialization
 
-def all_fridays_from(*args, **kwargs):
+def all_fridays_from(in_year):
     
-    temp_year = kwargs.get('in_year')
-    update_flag = kwargs.get('update')
-    in_market = kwargs.get('in_market')
-    print(f"in_year: {temp_year}  update: {update_flag}  in_market: {in_market}")
+    temp_year = in_year #kwargs.get('in_year')
+    #pdate_flag = kwargs.get('update')
+    #in_market = kwargs.get('in_market')
+    #print(f"in_year: {temp_year}  update: {update_flag}  in_market: {in_market}")
     fridays = []
     if temp_year!=None and temp_year>2018:
         current_date = datetime.datetime.now()
@@ -480,14 +317,31 @@ def all_fridays_from(*args, **kwargs):
                     if week[calendar.FRIDAY] != 0:
                         x = datetime.datetime(year, month, week[calendar.FRIDAY])
                         if x<current_date:
-                            fridays.append(x)
-    if update_flag:
-        temp_date = get_last_weekly_report_date(in_market)
-        while temp_date<datetime.datetime.today():
-            temp_date = next_weekday(temp_date, 4)
-            if temp_date>datetime.datetime.today():
-                break
-            fridays.append(temp_date)
+                            fridays.append(x.date())
+    return fridays
+   
+# assumes that DH reports are stored with directories for each country
+    
+def fridays_since_last_DH_report(in_data_path, in_market):
+    
+    if in_market in ('nyse', 'nasdaq'):
+        in_country = 'USA'
+    elif in_market == 'tsx':
+        in_country = 'CAN'
+    else:
+        print(f"{in_market} is not a valid market value")
+        return FAILURE
+    fridays = []
+    
+    temp_date = get_last_weekly_report_date(in_country, in_data_path)
+    if temp_date == FAILURE:
+        print(f"Error finding last report: {in_data_path} {in_market}")
+        return FAILURE
+    while temp_date<datetime.datetime.today():
+        temp_date = next_weekday(temp_date, 4)
+        if temp_date>datetime.datetime.today():
+            break
+        fridays.append(temp_date.date())
         
     return fridays
 
