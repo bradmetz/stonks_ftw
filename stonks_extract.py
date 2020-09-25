@@ -54,7 +54,7 @@ def get_tickers_divhistory(in_market: str):
     try:
         dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False)
     except HTTPError as err:
-        print(f"Could not get TSX ticks: HTTP Code: {err.code}  Path Tried: {err.url}")
+        print(f"Could not get {in_market} ticks: HTTP Code: {err.code}  Path Tried: {err.url}")
         return su.FAILURE
     df = dfs[0]
     sym_list = df['Symbol'].to_list()
@@ -136,5 +136,73 @@ def get_tickers_divhistory_local(in_path, in_file_name):
         print("DF does not contain key Symbol")
         return su.FAILURE
     return (sym_list)
+
+# get and parse weekly stock report from dividendhistory.org
+# note:  previous reports are not publicly linked on site but are 
+# accessible with URL tweak.
+# returns DF with results and adds epoch timstamps
+
+def get_DH_weekly_report(in_market, in_date:date):
+     
+    
+    # check if date is a friday as reports are only published on Fridays
+    if su.is_friday(in_date)==su.FAILURE:
+        print("DH reports are only published on Fridays - check your date")
+        return su.FAILURE
+    
+    #data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
+    web_path = 'https://dividendhistory.org/reports/{3}/{2}-{1}-{0}-report.htm'.format(in_date.strftime("%d"), in_date.strftime("%m"), in_date.year, market)
+    data_file_path = data_file_path + "div_history_report-{3}-{2}-{1}-{0}.csv".format(in_date.strftime("%d"), in_date.strftime("%m"), in_date.year, market)
+    try:
+        dfs = pd.read_html(web_path, keep_default_na=False)
+        write_file = True
+        i+=1
+        printProgressBar(i + 1, len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix = 'Complete', length = 50)
+    except:
+        #print(f"File not found: {web_path}")
+        write_file = False
+    
+    df = dfs[0]
+    df = df.iloc[:, :16]
+    colnames = []
+    for col in df.columns:
+        colnames.append(col[1])
+    df.columns = colnames
+            # remove sector category rows from data
+            # this function assumes that all cells are populated with same string
+            # when its a header row
+        for row_num, row in df.iterrows():
+            if row['Price'] == row['Name']:
+                df = df.drop(row_num)
+            
+        date_str  = "{0}-{1}-{2}".format(day.year, day.strftime("%m"), day.strftime("%d"))
+        df['report_date_epoch'] = int(((datetime.datetime.strptime(date_str, "%Y-%m-%d")).timestamp())*1000)
+        # strip % from yld and PayRto
+        df['Yld'] = df['Yld'].map(lambda x: x.lstrip('').rstrip('%'))
+        df['PayRto'] = df['PayRto'].map(lambda x: x.lstrip('').rstrip('%'))
+            
+        # split div frequency from ex-div date
+        # had to run in a try statement because of at least one report 
+        # that had no dates, just requency for ex-div date .. if this happens,
+        # whole div-freq column is set to -
+        try:
+            df['div_freq'] = (df['Ex-Div'].str.split(pat=r'\d\d\d\d-\d\d-\d\d', expand=True))[1]
+            df['Ex-Div'] = df['Ex-Div'].map(lambda x: x.lstrip('').rstrip('AQSMU'))
+        except:
+            df['div_freq'] = "-"
+            pass
+        # need to reinsert nans for whitespace cells as nans are removed on import
+        # once nans are back in, fillnan with - 
+        # all of this is because of one ticker symbol (NA) which is interpreted as a NaN on import
+        # unless keep_default_na=false
+        df = df.replace(r'^\s*$', np.nan, regex=True)
+        df = df.fillna(value='-')
+        df['market'] = market            
+        try:
+            df['ex_div_epoch'] = df.apply (lambda x: "-" if x['Ex-Div'] == "-" else int(((datetime.datetime.strptime(x['Ex-Div'], "%Y-%m-%d")).timestamp())*1000), axis=1)
+        except:
+            df['ex_div_epoch'] = "-"
+            #print("Exception tripped")
+            pass
 
 

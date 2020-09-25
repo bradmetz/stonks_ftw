@@ -175,6 +175,10 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
 # year=2019 
 # update=True
 
+# TO REFACTOR - extract code for getting single report and add to stonks_extract - return df
+#       - normalize markets paramters to use su.MARKETS
+#       - convert rest to stonks_flow (to csv from stonks_output should work)
+
 def dl_and_write_DH_reports(in_file_path, market, *args, **kwargs):
     
     in_year = kwargs.get('year')
@@ -276,6 +280,8 @@ def dl_and_write_DH_reports(in_file_path, market, *args, **kwargs):
 
 # in_country is either CAN or USA
 
+# TO REFACTOR - generalize for local store anywhere (from csv) and add to 
+#    stonks_extract
 
 def get_last_weekly_report_date(in_country):
     
@@ -327,6 +333,10 @@ def get_last_weekly_report_date(in_country):
 #    sym_list = df['Symbol'].to_list()
 #    return (sym_list)
 
+
+# TO REFACTOR - add to stonks_flow to create all dividend yield records 
+#    using proper ETL mods
+
 def get_all_div_yield_histories(in_tickers: list, in_market: str, in_data_path: str):
     i=0
     printProgressBar(0, len(in_tickers), prefix = f'{in_market} Yield History Progress:', suffix = 'Complete', length = 50)
@@ -349,6 +359,10 @@ def get_all_div_yield_histories(in_tickers: list, in_market: str, in_data_path: 
 # update after each new div
 
 # for each file in market dir 
+
+# TO REFACTOR - add to transform with DF input and output
+# prereq - DH weekly report, yahoo_daily_prices
+
 
 def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     
@@ -476,6 +490,13 @@ def all_fridays_from(*args, **kwargs):
             fridays.append(temp_date)
         
     return fridays
+
+# helper function to test for Friday
+
+def is_friday(in_date):
+    if in_date.isoweekday() == 5:
+        return SUCCESS
+    return FAILURE
 
 def next_weekday(d, weekday):
     days_ahead = weekday - d.weekday()
