@@ -20,6 +20,7 @@ import datetime
 from urllib.error import HTTPError
 from datetime import date
 import numpy as np
+import yfinance as yf
 
 import stonks_utils as su
 
@@ -219,3 +220,57 @@ def get_DH_weekly_report(in_market, in_date:date):
         
     return df
 
+# get and parse price history from yahoo_finance for given ticker 
+# and given date range
+#   Either in_period = max (full history) or last_day 
+#   OR
+#   in_period = spec AND requires at least in_start str 'YYYY-MM-DD'
+#   no in_end specified will default to today
+
+def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *xargs, **kwargs):
+    
+    
+    if in_market not in su.MARKETS: 
+        print('market must be one of TSX, NYSE, or NASDAQ')
+        return su.FAILURE
+    
+    if not is_in_exchange_DH(in_sym, in_market):
+        return su.FAILURE
+    
+    
+    # convert standard ticker to yahoo ticker notation
+    # replace . with _ 
+    # append .(excchange digraph) TSX the only one supported right now
+    
+    if in_period == 'spec':
+        start = kwargs.get('in_start')
+        end = kwargs.get('in_end')
+        if start!=None:
+            if end==None:
+                end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
+        else:
+            print('You need to provide a start date with spec')
+            return su.FAILURE
+    
+    
+    # PREP
+    in_sym = in_sym.replace('.', '-')
+    if in_market == 'tsx':
+        in_sym = in_sym + '.TO'
+    curr_tick = yf.Ticker(in_sym)
+    
+    # auto_adjust set to false to get prices adjusted for splits only (not dividends)
+    if in_period == 'max' or in_period =='last_day':    
+        df = curr_tick.history(period=in_period, auto_adjust=False)
+    else:
+        df = curr_tick.history(start=start, end=end, auto_adjust=False)
+    if df.empty is False:
+        df['symbol'] = in_sym.replace('.TO', '')
+        df['market'] = in_market
+        df = df.reset_index()
+        df['date_epoch'] = df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+        
+    else:
+        pass
+    
+    return df

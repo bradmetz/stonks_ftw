@@ -15,6 +15,7 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta, FR
 import stonks_extract as se
 import stonks_output as so
+import stonks_utils as su
 
 
 # Globals for use across operations
@@ -31,6 +32,7 @@ MARKETS = ('tsx', 'nyse', 'nasdaq')
 # lazy solution is to just run full history collect and 
 # overwrite full csv files each night
 
+# TO BE REFACTORED - add to stonks_flow
 # should be migrated to a stonks_flow
 
 def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:str):
@@ -46,7 +48,7 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
     
     for curr_sym in in_tickers:
         i += 1
-        ret_df = pd.DataFrame()
+        df = pd.DataFrame()
         printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
         curr_sym = curr_sym.replace('.', '-')
         if in_market == 'tsx':
@@ -64,20 +66,22 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
         curr_tick = yf.Ticker(curr_sym)
         #print(last_date)
         if last_date < date.today():
-            ret_df = curr_tick.history(start=last_date, end=date.today(), auto_adjust=False)
+            df = curr_tick.history(start=last_date, end=date.today(), auto_adjust=False)
         else:
             #print(f"no update for {curr_sym}")
             pass
-        if ret_df.empty is False:
+        if df.empty is False:
             #print(f"getting {curr_tick}")
-            ret_df['symbol'] = curr_sym.replace('.TO', '')
-            ret_df['market'] = in_market
-            ret_df = ret_df.reset_index()
-            ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
-            ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', mode='a', index=False, header=False)
+            df['symbol'] = curr_sym.replace('.TO', '')
+            df['market'] = in_market
+            df = df.reset_index()
+            df['date_epoch'] = df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+            df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', mode='a', index=False, header=False)
         else:
             pass
     return 0
+
+
 
 # generalize function to take a list of tickers instead of a pandas dataframe
 # returns 0 on success -1 otherwise
@@ -87,39 +91,47 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
 # use in_period = 'spec' with in_start and in_end dates to specify
 # a time interval.  not specifying end defaults to yesterday
 # all functions will overwrite any existing data files
+
+# path given should be full path to price history files
+# if directory does not exist it will make it
+
+# TO BE REFACTORED - add to stonks_flow
+# - add extractor code to stonks_extract to return df for given ticker
+# - add flow to get all price histories from tickers list and save as csv locally
+
 def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, in_market:str, *args, **kwargs):
     
     # setup based on input parameters
     data_file_path = in_file_path
-    data_file_path = data_file_path + 'price_history/'
+    #data_file_path = data_file_path + 'price_history/'
     make_dir(data_file_path)
     
-    if in_period == 'max':
-        print("got max")
-    
-    elif in_period == 'last_day':
-        print("got last_day")
-    
-    elif in_period == 'spec':
-        print('got spec')
-        start = kwargs.get('in_start')
-        end = kwargs.get('in_end')
-        if start!=None:
-            if end==None:
-                end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
-        else:
-            print('You need to provide a start date with spec')
-            return -1
+#    if in_period == 'max':
+#        print("got max")
+#    
+#    elif in_period == 'last_day':
+#        print("got last_day")
+#    
+#    elif in_period == 'spec':
+#        print('got spec')
+#        start = kwargs.get('in_start')
+#        end = kwargs.get('in_end')
+#        if start!=None:
+#            if end==None:
+#                end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
+#        else:
+#            print('You need to provide a start date with spec')
+#            return -1
              
-    else:
-        test = kwargs.get('test')
-        print(test)
-        print('Only \'max\', \'spec\',  and \'last_day\' supported as this time')
-        return -1
+#    else:
+#        test = kwargs.get('test')
+##        print(test)
+#        print('Only \'max\', \'spec\',  and \'last_day\' supported as this time')
+#        return -1
     
-    if in_market != 'TSX' and in_market != 'NYSE' and in_market != 'NASDAQ':
-        print('market must be one of TSX, NYSE, or NASDAQ')
-        return -1
+#    if in_market not in su.MARKETS: #!= 'TSX' and in_market != 'NYSE' and in_market != 'NASDAQ':
+#        print('market must be one of TSX, NYSE, or NASDAQ')
+#        return -1
     
     i=0
     printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
@@ -128,24 +140,25 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
     for curr_sym in in_tickers:
         i += 1
         printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
-        curr_sym = curr_sym.replace('.', '-')
-        if in_market == 'TSX':
-            curr_sym = curr_sym + '.TO'
-        curr_tick = yf.Ticker(curr_sym)
-        if in_period == 'max' or in_period =='last_day':    
-            ret_df = curr_tick.history(period=in_period, auto_adjust=False)
-        else:
-            ret_df = curr_tick.history(start=start, end=end, auto_adjust=False)
-        if ret_df.empty is False:
+        
+       # curr_sym = curr_sym.replace('.', '-')
+       # if in_market == 'TSX':
+       #     curr_sym = curr_sym + '.TO'
+       # curr_tick = yf.Ticker(curr_sym)
+       # if in_period == 'max' or in_period =='last_day':    
+       #     df = curr_tick.history(period=in_period, auto_adjust=False)
+       # else:
+       #     df = curr_tick.history(start=start, end=end, auto_adjust=False)
+       # if df.empty is False:
             #print(f"getting {curr_tick}")
-            ret_df['symbol'] = curr_sym.replace('.TO', '')
-            ret_df['market'] = in_market
-            ret_df = ret_df.reset_index()
-            ret_df['date_epoch'] = ret_df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
-            ret_df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', index=False)
-        else:
-            pass
-    return 0
+       #     df['symbol'] = curr_sym.replace('.TO', '')
+       #     df['market'] = in_market
+       #     df = df.reset_index()
+       #     df['date_epoch'] = df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+       #     df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', index=False)
+       # else:
+       #     pass
+    return su.SUCCESS
         
 
 # in_country is either CAN or USA

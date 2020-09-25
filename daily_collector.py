@@ -23,9 +23,11 @@ import sys, getopt
 import stonks_utils as su
 import stonks_extract as se
 
+LOCAL_DATASET_PATH = "./datasets/"
+
 def main():
     
-    global data_file_path
+    
     global price
     global weekly
     global divs

@@ -96,6 +96,30 @@ def main():
     except AssertionError:
         print("DH weekly report - invalid market test - Failed")
     
+    print(">>> Yahoo Price History per ticker tests")    
+        
+    try:
+        df = se.get_ticker_price_history_yahoo('AAPL', 'nasdaq', 'max')
+        assert(len(df) != 0)
+        print("Yahoo Price history - df AAPL nasdaq return test - Passed")
+    except AssertionError:
+        print("Yahoo Price history - df AAPL nasdaq return test - Failed")
+        
+    try:
+        df = se.get_ticker_price_history_yahoo('AAPL', 'nyse', 'max')
+        assert(df == su.FAILURE)
+        print("Yahoo Price history - mismatched ticker/market test - Passed")
+    except AssertionError:
+        print("Yahoo Price history - mismatched ticker/market test - Failed")
+
+    try:
+        start_date_str  = "2010-09-18"
+        df = se.get_ticker_price_history_yahoo('ATD.B', 'tsx', 'spec', in_start=start_date_str )
+        assert(len(df) != 0)
+        assert(('2009-01-01' in df['Date']) is False)
+        print("Yahoo Price history - . ticker and TSX and spec test - Passed")
+    except AssertionError:
+        print("Yahoo Price history - . ticker and TSX and spec test - Failed")
 
 if __name__ == "__main__":
     main()
