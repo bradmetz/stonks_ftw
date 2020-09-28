@@ -129,6 +129,7 @@ def get_tickers_divhistory_local(in_path, in_file_name):
 
     try:
         dfs = pd.read_csv(f'{in_path}{in_file_name}', keep_default_na=False)
+        #print(dfs)
     except:
         print(f"Could not find file {in_path}{in_file_name}")
         return su.FAILURE
@@ -235,6 +236,7 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
         return su.FAILURE
     
     if not is_in_exchange_DH(in_sym, in_market):
+        print(f'ticker not in exchange {in_sym} is not in {in_market}')
         return su.FAILURE
     
     

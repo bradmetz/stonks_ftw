@@ -35,6 +35,7 @@ MARKETS = ('tsx', 'nyse', 'nasdaq')
 # TO BE REFACTORED - add to stonks_flow
 # should be migrated to a stonks_flow
 
+'''
 def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:str):
     
     # full path to be provided going forward
@@ -51,36 +52,46 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
         df = pd.DataFrame()
         printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
         curr_sym = curr_sym.replace('.', '-')
+        
+        # may not need this for file path
         if in_market == 'tsx':
             curr_sym = curr_sym + '.TO'
         
-        # get last update date
+        # FIX FILE PATH
         try:
             dfs = pd.read_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', keep_default_na=False)
         except:
             pass
         
+        # grab date of last update on from price file
         dfs['Date'] = pd.to_datetime(dfs['Date'])
         last_date = dfs['Date'].max() + relativedelta(days=1)
-        #print(curr_sym)
+        
+        
+        
+        # this section can be replaced iwth a call to get_ticker_price_history with 
+        # specified rnage determined above
         curr_tick = yf.Ticker(curr_sym)
-        #print(last_date)
+        
         if last_date < date.today():
             df = curr_tick.history(start=last_date, end=date.today(), auto_adjust=False)
         else:
             #print(f"no update for {curr_sym}")
             pass
+        
+        
         if df.empty is False:
             #print(f"getting {curr_tick}")
             df['symbol'] = curr_sym.replace('.TO', '')
             df['market'] = in_market
             df = df.reset_index()
             df['date_epoch'] = df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)
+            # append to existing file
             df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', mode='a', index=False, header=False)
         else:
             pass
     return 0
-
+'''
 
 
 # generalize function to take a list of tickers instead of a pandas dataframe
@@ -99,12 +110,12 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
 # - add extractor code to stonks_extract to return df for given ticker
 # - add flow to get all price histories from tickers list and save as csv locally
 
-def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, in_market:str, *args, **kwargs):
+#def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, in_market:str, *args, **kwargs):
     
     # setup based on input parameters
-    data_file_path = in_file_path
+    #data_file_path = in_file_path
     #data_file_path = data_file_path + 'price_history/'
-    make_dir(data_file_path)
+    #make_dir(data_file_path)
     
 #    if in_period == 'max':
 #        print("got max")
@@ -133,13 +144,13 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
 #        print('market must be one of TSX, NYSE, or NASDAQ')
 #        return -1
     
-    i=0
-    printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+   # i=0
+    #printProgressBar(0, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
 
     
-    for curr_sym in in_tickers:
-        i += 1
-        printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
+   # for curr_sym in in_tickers:
+    #    i += 1
+     #   printProgressBar(i, len(in_tickers), prefix = f'{in_market} Price History Progress:', suffix = 'Complete', length = 50)
         
        # curr_sym = curr_sym.replace('.', '-')
        # if in_market == 'TSX':
@@ -158,7 +169,7 @@ def get_ticker_price_history(in_tickers: list, in_period:str, in_file_path:str, 
        #     df.to_csv(f'{data_file_path}yahoo_price_history_{curr_sym}.csv', index=False)
        # else:
        #     pass
-    return su.SUCCESS
+    #return su.SUCCESS
         
 
 # in_country is either CAN or USA

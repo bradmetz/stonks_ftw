@@ -6,6 +6,8 @@ that pay a dividend based on dividendhistory.org and yfinance.  This script is m
 to be used as a collector for a single day's worth of data.  Default time will be 
 previous day from run unless otherwise specified.
 
+Assumes the dataset was alrady initialized with initialize.py
+
 Default updates will be for all data types and sources for the previous day. 
 
 options to consider 
@@ -22,6 +24,7 @@ import sys, getopt
 #from datetime import date, timedelta 
 import stonks_utils as su
 import stonks_extract as se
+import stonks_flows as sf
 
 LOCAL_DATASET_PATH = "./datasets/"
 
@@ -35,44 +38,29 @@ def main():
     weekly = False
     divs = False
     
-    data_file_path = "./datasets/"
-    #curr_date = date.today()
-    #yesterday = curr_date - timedelta(days=1)
-    #last_friday = stonks_utils.get_last_friday()
     parse_args()
     
-    # get updated dividend records 
-    #   check previous lastest date
-    #   check new date
-    #   if differnet, write change
-    # 
-    #Update price records will grab all daily closing prices from the last 
-    # retrieved price record
-    # get DH weekly
-    #   run dl_and_write_DH_reports with update=True to grab missing DH weekly reports
     if price is True:
         for exc in su.MARKETS:
-            ticks = se.get_tickers_divhistory_local('./datasets/', f'DH_tickers_{exc}.csv')
-            su.update_ticker_price_records(ticks, './datasets/price_history/', exc )
+            ticks = se.get_tickers_divhistory_local(LOCAL_DATASET_PATH, f'DH_tickers_{exc}.csv')
+            if ticks == su.FAILURE:
+                print(f"Error getting tickers {LOCAL_DATASET_PATH}DH_tickers_{exc}.csv")
+                return su.FAILURE
             
-            #ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nyse')
-            #stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NYSE' )
-            #ticks = stonks_utils.read_tickers_DH_local('./datasets/', 'nasdaq')
-            #stonks_utils.update_ticker_price_records(ticks, './datasets/', 'NASDAQ' )
-    
+            sf.update_ticker_price_records(ticks, LOCAL_DATASET_PATH + 'price_history/', exc )
     # weekly report updates based on last report
     if weekly is True:
-        su.dl_and_write_DH_reports(data_file_path, "USA", update=True)
-        su.dl_and_write_DH_reports(data_file_path, "CAN", update=True)
-
+        sf.dl_and_write_DH_reports(LOCAL_DATASET_PATH+'weekly_divhistory_reports/', "USA", update=True)
+        sf.dl_and_write_DH_reports(LOCAL_DATASET_PATH+'weekly_divhistory_reports/', "CAN", update=True)
    # update historic dividend records
+   # still lazy method of redownload the entire dataset
     if divs is True:
-        su.get_div_histories_DH(data_file_path)      
+        sf.get_div_histories_DH(LOCAL_DATASET_PATH)      
     
     return 0
     
 def parse_args():
-    global data_file_path
+    #global data_file_path
     global price
     global divs
     global weekly
@@ -81,9 +69,9 @@ def parse_args():
     except getopt.GetoptError:
         usage()
     for o, a in opts:
-        if o in ("-t", "--temp"):
-            data_file_path = str(a)
-            print("Data file path: {}".format(data_file_path))
+        #if o in ("-t", "--temp"):
+         #   data_file_path = str(a)
+          #  print("Data file path: {}".format(data_file_path))
         if o in ("-h", "--help"):
             usage()
         if o in ("-p", "--price"):
@@ -96,7 +84,7 @@ def parse_args():
             divs=True
             print("getting dividend updates")
             
-    su.make_dir(data_file_path)
+    #su.make_dir(data_file_path)
     
 def usage():
     print ('-----------------------------------------------------------')
