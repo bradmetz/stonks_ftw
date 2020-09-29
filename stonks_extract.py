@@ -24,6 +24,9 @@ import yfinance as yf
 
 import stonks_utils as su
 
+
+# ------------------------ Remote Extractors DividendHistory-------------------------
+
 # get summary of tickers from dividendhistory.org
 # in_market is one of tsx, nyse, nasdaq
 # adds exchange and epoch time stamp for next ex-div
@@ -118,28 +121,6 @@ def is_in_exchange_DH(in_sym, in_market):
     sym_list = get_tickers_divhistory(in_market)
     return (in_sym in sym_list)
 
-
-# get list of tickers sourced from dividendhistory.org from local csv
-# 
-# returns list of tickers symbols only populated from local copy to divhistory ticker list
-# will extract a column named Symbol from provided dataframe and return as a list
-# FUTURE : could generalize as extact named column as list
-
-def get_tickers_divhistory_local(in_path, in_file_name):
-
-    try:
-        dfs = pd.read_csv(f'{in_path}{in_file_name}', keep_default_na=False)
-        #print(dfs)
-    except:
-        print(f"Could not find file {in_path}{in_file_name}")
-        return su.FAILURE
-    try:
-        sym_list = dfs['Symbol'].to_list()
-    except KeyError:
-        print("DF does not contain key Symbol")
-        return su.FAILURE
-    return (sym_list)
-
 # get and parse weekly stock report from dividendhistory.org
 # note:  previous reports are not publicly linked on site but are 
 # accessible with URL tweak.
@@ -221,6 +202,12 @@ def get_DH_weekly_report(in_market, in_date:date):
         
     return df
 
+
+
+
+# --------------------- REMOTE EXTRACTIONS Yahoo ----------------------------
+
+
 # get and parse price history from yahoo_finance for given ticker 
 # and given date range
 #   Either in_period = max (full history) or last_day 
@@ -276,3 +263,99 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
         pass
     
     return df
+
+
+# --------------------------- LOCAL EXTRACTIONS ----------------------------------
+
+# grab divdidend history for ticker from local csv
+# original source dividendhistory.org
+# 
+# EXTRACT
+def get_DH_div_history_local(in_data_path:str, in_ticker:str, in_market:str):
+    
+    if in_market not in su.MARKETS:
+        print("Market must be one of tsx, nyse. nasdaq")
+        return su.FAILURE
+    
+    try:
+        data_file_path = in_data_path
+        #temp_tick = in_ticker.replace('.', '_')
+        #print(in_ticker)
+        dfs = pd.read_csv(f'{data_file_path}{in_market}/DH_div_history_{in_ticker}.csv', keep_default_na=False)
+        #div_path = data_file_path + "yield_history/"
+        #make_dir(div_path)
+    except:
+        print(f"Could not find {data_file_path}{in_market}/DH_div_history_{in_ticker}.csv")
+        return su.FAILURE
+    return dfs
+
+# grab weekly DH report from local data store csv
+# returns full data frame of report on given day
+# in_data_path full root directory for DH reports 
+# original source dividendhistory.org
+# EXTRACT
+def get_DH_weekly_report_local(in_data_path:str, in_market:str, in_date:date):
+    
+    if in_market not in su.MARKETS:
+        print("Market must be one of tsx, nyse. nasdaq")
+        return su.FAILURE
+    if not su.is_friday(in_date) or in_date > datetime.datetime.today():
+        print("Date must be a Friday in the past")
+        return su.FAILURE
+    
+    try:
+        if in_market == 'tsx':
+            dfs = pd.read_csv(f'{in_data_path}CAN/div_history_report-CAN-{in_date.year}-{in_date.month}-{in_date.day}.csv', keep_default_na=False)
+        else:
+            dfs = pd.read_csv(f'{in_data_path}USA/div_history_report-USA-{in_date.year}-{in_date.month}-{in_date.day}.csv', keep_default_na=False)
+        #dfs.drop(columns=["Name", "Price", "Yld", "Ex-Div", "PayRto", "PE", "PB", "Beta", "Mkt Cap", "WK%", "MO%", "2MO%", "3MO%", "6MO%", "1YR%", "report_date_epoch", "ex_div_epoch"], inplace=True)
+    except:
+        print(f'Could not find weekly report for {in_market}')
+        return su.FAILURE
+    return dfs
+
+# grab price history for ticker
+# in_data_path is full path to directory containing price recrords from yahoo
+    # EXTRACT
+def get_ticker_price_history_yahoo_local(in_data_path:str, in_market:str, in_ticker:str):
+    
+    if in_market not in su.MARKETS:
+        print("Market must be one of tsx, nyse. nasdaq")
+        return su.FAILURE
+    
+    try:
+        #if in_market == 'tsx':
+        ##    in_ticker_can = in_ticker.replace('.', '-')
+          #  in_ticker_can = in_ticker_can + '.TO'
+        dfs = pd.read_csv(f'{in_data_path}yahoo_price_history_{in_ticker}_{in_market}.csv', keep_default_na=False)
+       # else:
+            #in_ticker_us = in_ticker.replace('.', '-')
+        #    dfs2 = pd.read_csv(f'{data_file_path}price_history/yahoo_price_history_{in_ticker}.csv')
+        
+        #print(dfs2)
+    except:
+        print(f"{in_data_path}yahoo_price_history_{in_ticker}_{in_market}.csv - Failed")
+        return su.FAILURE
+    #print(dfs2)
+    return dfs
+
+# get list of tickers sourced from dividendhistory.org from local csv
+# 
+# returns list of tickers symbols only populated from local copy to divhistory ticker list
+# will extract a column named Symbol from provided dataframe and return as a list
+# FUTURE : could generalize as extact named column as list
+
+def get_tickers_divhistory_local(in_path, in_file_name):
+
+    try:
+        dfs = pd.read_csv(f'{in_path}{in_file_name}', keep_default_na=False)
+        #print(dfs)
+    except:
+        print(f"Could not find file {in_path}{in_file_name}")
+        return su.FAILURE
+    try:
+        sym_list = dfs['Symbol'].to_list()
+    except KeyError:
+        print("DF does not contain key Symbol")
+        return su.FAILURE
+    return (sym_list)
