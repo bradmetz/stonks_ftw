@@ -14,7 +14,7 @@ import stonks_utils as su
 # safely create directory, write check, and write out
 # Used to write out a data frame to csv for later use
 
-def df_to_csv(in_df, in_path, in_file_name, keep_index):
+def df_to_csv(in_df:pd.DataFrame, in_path, in_file_name, keep_index):
         
     if su.make_dir(in_path)==su.SUCCESS:
         try:
@@ -24,7 +24,7 @@ def df_to_csv(in_df, in_path, in_file_name, keep_index):
             return su.FAILURE
     return su.SUCCESS 
 
-def append_df_to_csv(in_df, in_path, in_file_name):
+def append_df_to_csv(in_df:pd.DataFrame, in_path, in_file_name):
     
     try:
         in_df.to_csv(f'{in_path}{in_file_name}', mode='a', index=False, header=False)
