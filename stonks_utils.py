@@ -225,7 +225,7 @@ def get_all_div_yield_histories(in_tickers: list, in_market: str, in_data_path: 
 # TO REFACTOR - add to transform with DF input and output
 # prereq - DH weekly report, yahoo_daily_prices
 
-
+'''
 def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     
     
@@ -318,7 +318,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     result.to_csv(f"{data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv", index=0)
     
     return 0
-
+'''
     
 
 # returns an array of datetime objects of all fridays from the year given 

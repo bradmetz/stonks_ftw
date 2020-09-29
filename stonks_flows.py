@@ -204,7 +204,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # EXTRACT
     
     df_divs = se.get_DH_div_history_local(in_data_path, in_ticker, in_market)
-    if df_divs == su.FAILURE:
+    if type(df_divs) != pd.DataFrame:
         print(f"{in_data_path}{in_market}{in_ticker} Failed")
         return su.FAILURE
     
@@ -234,7 +234,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     in_date = su.get_last_friday()
     
     df_div_freqs = se.get_DH_weekly_report_local(in_data_path+'weekly_divhistory_reports/', in_market, in_date)
-    if df_div_freqs == su.FAILURE:
+    if type(df_div_freqs) != pd.DataFrame:
         print(f"{in_data_path}weekly_divhistory_report/ {in_date} Failed")
         return su.FAILURE
     # only want div freq with symbols
@@ -256,7 +256,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
       #  return -1
     #print(dfs2)
     df_prices = se.get_ticker_price_history_yahoo_local(in_data_path+'price_history/', in_market, in_ticker)
-    if df_prices == su.FAILURE:
+    if type(df_prices) != pd.DataFrame:
         print(f"{in_data_path}price_history/ {in_market} {in_ticker} - Failure")
         return su.FAILURE
    
@@ -265,7 +265,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # TRANSFORM
 
     result = st.generate_yield_history(df_divs, df_div_freqs, df_prices, in_ticker)
-    if(result == su.FAILURE):
+    if(type(result) != pd.DataFrame):
         print(f"df_divs {df_divs} : df_div_freqs {df_div_freqs} : df_prices {df_prices} : in_ticker {in_ticker}")
         return su.FAILURE
     
@@ -303,13 +303,13 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # remove historic price records with no div
    # result = result[result['Daily Yield'].notna()]
     
-    #return result
+    return result
     # OUTPUT
     
     # write out yield history by exchange and ticker
-    su.make_dir(f"{in_data_path}yield_history/")
-    so.df_to_csv(result, f"{in_data_path}yield_history/", f"yield_history_{in_market}_{in_ticker}.csv", False)
+    #su.make_dir(f"{in_data_path}yield_history/")
+    #so.df_to_csv(result, f"{in_data_path}yield_history/", f"yield_history_{in_market}_{in_ticker}.csv", False)
     #print(f"Path to write out {data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv")
     #result.to_csv(f"{data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv", index=0)
     
-    return su.SUCCESS
+    #return su.SUCCESS
