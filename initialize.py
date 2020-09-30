@@ -37,7 +37,7 @@ def main():
     #sym_list = se.get_tickers_divhistory('nasdaq')
     #sf.get_ticker_price_history(sym_list, LOCAL_DATASET_PATH + "price_history", 'nasdaq')
     
-    return se.SUCCESS
+    return su.SUCCESS
     
 def usage():
     print ('-----------------------------------------------------------')
