@@ -85,8 +85,8 @@ def get_div_history_DH(in_sym, in_market):
         dfs = pd.read_html(url_str)
     except:
         print(f"Could not get {in_market} Div History for {in_sym}")
-        return pd.DataFrame()  
-            
+        return pd.DataFrame()                
+    
     # small decision block to deal with optional anoucements header on some pages
     if len(dfs)==3:
         df = dfs[0]
@@ -130,7 +130,7 @@ def get_DH_weekly_report(in_market, in_date:date):
      
     
     # check if date is a friday as reports are only published on Fridays
-    if su.is_friday(in_date)==su.FAILURE:
+    if not su.is_friday(in_date):
         print("DH reports are only published on Fridays - check your date")
         return pd.DataFrame()
     # validate market 
@@ -264,7 +264,6 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
         pass
     
     return df
-
 
 # --------------------------- LOCAL EXTRACTIONS ----------------------------------
 

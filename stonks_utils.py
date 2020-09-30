@@ -180,18 +180,17 @@ def get_last_weekly_report_date(in_country, in_path):
     
     if in_country!='USA' and in_country!='CAN':
         print("in_country must be one of CAN or USA")
-        return -1
+        return su.FAILURE
     try: 
         dates = os.listdir(f'{in_path}{in_country}')
     except FileNotFoundError:
-        print(f"Dir {in_path}{in_country} no found")
-        return FAILURE
+        print(f"Dir {in_path}{in_country} not found")
+        return su.FAILURE
+    
     dates = [item.lstrip(f'div_history_report-{in_country}-') for item in dates]
     dates = [item.rstrip('.csv') for item in dates]
     dates_list = [datetime.datetime.strptime(date, '%Y-%m-%d').date() for date in dates]
-    maxdate = max(dates_list)    
-    #maxdate = datetime.datetime.strptime(maxdate, '%Y-%m-%d')
-
+    maxdate = max(dates_list)
     return maxdate
     
 
@@ -354,13 +353,13 @@ def fridays_since_last_DH_report(in_data_path, in_market):
         in_country = 'CAN'
     else:
         print(f"{in_market} is not a valid market value")
-        return FAILURE
+        return []
     fridays = []
     
     temp_date = get_last_weekly_report_date(in_country, in_data_path)
     if temp_date == FAILURE:
         print(f"Error finding last report: {in_data_path} {in_market}")
-        return FAILURE
+        return []
     while temp_date<datetime.datetime.today():
         temp_date = next_weekday(temp_date, 4)
         if temp_date>datetime.datetime.today():
