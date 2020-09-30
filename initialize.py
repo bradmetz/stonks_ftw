@@ -6,12 +6,10 @@ that pay a dividend based on dividendhistory.org
 
 standalone run once script
 
-can be run with no parameters
+change LOCAL_DATASET_PATH to where you want to store the dataset
 
 """
-import sys #, getopt
-#import pandas as pd
-#import stonks_utils
+import sys 
 import stonks_flows as sf
 import stonks_extract as se
 import stonks_utils as su
@@ -30,12 +28,6 @@ def main():
     for exc in su.MARKETS:
         sym_list = se.get_tickers_divhistory(exc)
         sf.get_ticker_price_history(sym_list, LOCAL_DATASET_PATH + "price_history/", exc)
-    
-    #sym_list = se.get_tickers_divhistory('nyse')
-    #sf.get_ticker_price_history(sym_list, LOCAL_DATASET_PATH + "price_history", 'nyse')
-    
-    #sym_list = se.get_tickers_divhistory('nasdaq')
-    #sf.get_ticker_price_history(sym_list, LOCAL_DATASET_PATH + "price_history", 'nasdaq')
     
     return se.SUCCESS
     

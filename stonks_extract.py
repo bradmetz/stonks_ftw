@@ -300,8 +300,9 @@ def get_DH_weekly_report_local(in_data_path:str, in_market:str, in_date:date):
     if in_market not in su.MARKETS:
         print("Market must be one of tsx, nyse. nasdaq")
         return pd.DataFrame()
-    if not su.is_friday(in_date) or in_date > datetime.datetime.today():
+    if not su.is_friday(in_date):
         print("Date must be a Friday in the past")
+        print(in_date)
         return pd.DataFrame()
     
     try:

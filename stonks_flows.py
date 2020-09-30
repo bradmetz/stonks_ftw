@@ -303,13 +303,15 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # remove historic price records with no div
    # result = result[result['Daily Yield'].notna()]
     
-    return result
+    #return result
     # OUTPUT
     
     # write out yield history by exchange and ticker
-    #su.make_dir(f"{in_data_path}yield_history/")
-    #so.df_to_csv(result, f"{in_data_path}yield_history/", f"yield_history_{in_market}_{in_ticker}.csv", False)
+    su.make_dir(f"{in_data_path}yield_history/")
+    if so.df_to_csv(result, f"{in_data_path}yield_history/", f"yield_history_{in_market}_{in_ticker}.csv", False) == su.FAILURE:
+        print(f"error writing out yield history {in_market} {in_ticker}")
+        return su.FAILURE
     #print(f"Path to write out {data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv")
     #result.to_csv(f"{data_file_path}yield_history/yield_history_{in_market}_{in_ticker}.csv", index=0)
     
-    #return su.SUCCESS
+    return su.SUCCESS

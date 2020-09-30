@@ -188,9 +188,9 @@ def get_last_weekly_report_date(in_country, in_path):
         return FAILURE
     dates = [item.lstrip(f'div_history_report-{in_country}-') for item in dates]
     dates = [item.rstrip('.csv') for item in dates]
-
-    maxdate = max(dates)    
-    maxdate = datetime.datetime.strptime(maxdate, '%Y-%m-%d')
+    dates_list = [datetime.datetime.strptime(date, '%Y-%m-%d').date() for date in dates]
+    maxdate = max(dates_list)    
+    #maxdate = datetime.datetime.strptime(maxdate, '%Y-%m-%d')
 
     return maxdate
     
@@ -373,8 +373,8 @@ def fridays_since_last_DH_report(in_data_path, in_market):
 
 def is_friday(in_date):
     if in_date.isoweekday() == 5:
-        return SUCCESS
-    return FAILURE
+        return True
+    return False
 
 def next_weekday(d, weekday):
     days_ahead = weekday - d.weekday()
