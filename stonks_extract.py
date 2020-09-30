@@ -35,13 +35,13 @@ def get_ticker_summary_divhistory(in_market: str):
     
     if not (in_market in su.MARKETS):
         print('in_market must be one of tsx, nyse, nasdaq')
-        return su.FAILURE
+        return pd.DataFrame()
     
     try:
         dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0, index_col=0)
     except HTTPError as err:
         print(f"Could not get TSX ticks: HTTP Code: {err.code}  Path Tried: {err.url}")
-        return su.FAILURE
+        return pd.DataFrame()
     df = dfs[0]
     df['Exchange'] = "TSX"
     df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
@@ -70,7 +70,7 @@ def get_div_history_DH(in_sym, in_market):
     # extract module for pulling dividend history given ticker
     if not is_in_exchange_DH(in_sym, in_market):
         print(f"{in_sym} is not in {in_market} on dividendhistory")
-        return su.FAILURE
+        return pd.DataFrame()
     
     in_sym = in_sym.replace('.', '_')
     if in_market in ('nyse', 'nasdaq'):
@@ -82,7 +82,7 @@ def get_div_history_DH(in_sym, in_market):
         dfs = pd.read_html(url_str)
     except:
         print(f"Could not get {in_market} Div History for {in_sym}")
-        return su.FAILURE    
+        return pd.DataFrame()    
             
     # small decision block to deal with optional anoucements header on some pages
     if len(dfs)==3:
@@ -149,9 +149,9 @@ def get_DH_weekly_report(in_market, in_date:date):
      
     
     # check if date is a friday as reports are only published on Fridays
-    if su.is_friday(in_date)==su.FAILURE:
+    if su.is_friday(in_date)==False:
         print("DH reports are only published on Fridays - check your date")
-        return su.FAILURE
+        return pd.DataFrame()
     # validate market 
     if in_market in ('nyse', 'nasdaq'):
         market = 'USA'
@@ -159,7 +159,7 @@ def get_DH_weekly_report(in_market, in_date:date):
         market = 'CAN'
     else:
         print(f'Market {in_market} not valid')
-        return su.FAILURE
+        return pd.DataFrame()
     
     #data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
     web_path = 'https://dividendhistory.org/reports/{3}/{2}-{1}-{0}-report.htm'.format(in_date.strftime("%d"), in_date.strftime("%m"), in_date.year, market)
@@ -171,7 +171,7 @@ def get_DH_weekly_report(in_market, in_date:date):
         #printProgressBar(i + 1, len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix = 'Complete', length = 50)
     except HTTPError as err:
         print(f"Path not found: {err.url}: Code: {err.code}")
-        return su.FAILURE
+        return pd.DataFrame()
         #write_file = False
     
     # take first DataFrame in list 
@@ -233,11 +233,11 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
     
     if in_market not in su.MARKETS: 
         print('market must be one of TSX, NYSE, or NASDAQ')
-        return su.FAILURE
+        return pd.DataFrame()
     
     if not is_in_exchange_DH(in_sym, in_market):
         print(f'ticker not in exchange {in_sym} is not in {in_market}')
-        return su.FAILURE
+        return pd.DataFrame()
     
     
     # convert standard ticker to yahoo ticker notation
@@ -252,7 +252,7 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
                 end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
         else:
             print('You need to provide a start date with spec')
-            return su.FAILURE
+            return pd.DataFrame()
     
     
     # PREP
