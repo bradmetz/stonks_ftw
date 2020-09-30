@@ -16,7 +16,7 @@ import stonks_flows as sf
 import stonks_extract as se
 import stonks_utils as su
 
-LOCAL_DATASET_PATH = "./temp/"
+LOCAL_DATASET_PATH = "./datasets/"
 
 def main():
     
