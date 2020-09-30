@@ -175,6 +175,7 @@ def update_ticker_price_records(in_tickers: list, in_file_path:str, in_market:st
 # in_country is either CAN or USA
 # TO REFACTOR - generalize for local store anywhere (from csv) and add to 
 #    stonks_extract
+# returns a date object
 
 def get_last_weekly_report_date(in_country, in_path):
     
@@ -197,6 +198,7 @@ def get_last_weekly_report_date(in_country, in_path):
 
 # TO REFACTOR - add to stonks_flow to create all dividend yield records 
 #    using proper ETL mods
+
 
 def get_all_div_yield_histories(in_tickers: list, in_market: str, in_data_path: str):
     i=0
@@ -320,7 +322,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
 '''
     
 
-# returns an array of datetime objects of all fridays from the year given 
+# returns an array of date objects of all fridays from the year given 
 # to the last Friday from the current day
 # use in_year=2019 - this is used for dataset initialization
 
@@ -344,13 +346,16 @@ def all_fridays_from(in_year):
     return fridays
    
 # assumes that DH reports are stored with directories for each country
-    
+# returns     
+
 def fridays_since_last_DH_report(in_data_path, in_market):
     
     if in_market in ('nyse', 'nasdaq'):
         in_country = 'USA'
     elif in_market == 'tsx':
         in_country = 'CAN'
+    elif in_market in ('CAN', 'USA'):
+        in_country = in_market
     else:
         print(f"{in_market} is not a valid market value")
         return []
@@ -360,29 +365,31 @@ def fridays_since_last_DH_report(in_data_path, in_market):
     if temp_date == FAILURE:
         print(f"Error finding last report: {in_data_path} {in_market}")
         return []
-    while temp_date<datetime.datetime.today():
+    while temp_date<datetime.datetime.today().date():
         temp_date = next_weekday(temp_date, 4)
-        if temp_date>datetime.datetime.today():
+        if temp_date>datetime.datetime.today().date():
+            #print(f"{temp_date} - Failed")
             break
-        fridays.append(temp_date.date())
+        fridays.append(temp_date)
         
     return fridays
 
 # helper function to test for Friday
 
-def is_friday(in_date):
+def is_friday(in_date:date):
     if in_date.isoweekday() == 5:
         return True
     return False
 
+# returns date
 def next_weekday(d, weekday):
     days_ahead = weekday - d.weekday()
     if days_ahead <= 0: # Target day already happened this week
         days_ahead += 7
-    return d + datetime.timedelta(days_ahead)
+    return (d + datetime.timedelta(days_ahead))
 
 def get_last_friday():
-    return date.today() + relativedelta(weekday=FR(-1))    
+    return (date.today() + relativedelta(weekday=FR(-1))).date()    
 
 # assumes a date format YYYY-MM-DD 
 def str_date_to_epoch(in_date_str):

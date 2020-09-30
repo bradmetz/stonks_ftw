@@ -138,6 +138,8 @@ def get_DH_weekly_report(in_market, in_date:date):
         market = 'USA'
     elif in_market == 'tsx':
         market = 'CAN'
+    elif in_market in ('CAN', 'USA'):
+        market = in_market
     else:
         print(f'Market {in_market} not valid')
         return pd.DataFrame()
