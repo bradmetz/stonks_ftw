@@ -103,7 +103,7 @@ def dl_and_write_DH_reports(in_file_path, in_market, *args, **kwargs):
         df = se.get_DH_weekly_report(in_market, fri)
         
         # OUTPUT
-        if type(df) != pd.DataFrame:
+        if df.empty() is True:
             print(f"no report for {in_market} on {fri.year}-{fri.month}-{fri.day}")
         elif so.df_to_csv(df, in_file_path, f"div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv", False)==su.FAILURE:
             print(f"Error writing div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv")
@@ -129,7 +129,7 @@ def get_ticker_price_history(in_tickers: list, in_file_path:str, in_market:str):
         df = se.get_ticker_price_history_yahoo(curr_sym, in_market, 'max')
         
         # OUTPUT
-        if type(df) != pd.DataFrame:
+        if df.empty() is True:
             print(f"Error collecting price history for {curr_sym} on {in_market}")
         elif so.df_to_csv(df, in_file_path, f"yahoo_price_history_{curr_sym}_{in_market}.csv", False) == su.FAILURE:
             print(f"Error writing file for {curr_sym} in market {in_market}")
@@ -204,7 +204,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # EXTRACT
     
     df_divs = se.get_DH_div_history_local(in_data_path, in_ticker, in_market)
-    if type(df_divs) != pd.DataFrame:
+    if df_divs.empty:
         print(f"{in_data_path}{in_market}{in_ticker} Failed")
         return su.FAILURE
     
@@ -234,7 +234,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     in_date = su.get_last_friday()
     
     df_div_freqs = se.get_DH_weekly_report_local(in_data_path+'weekly_divhistory_reports/', in_market, in_date)
-    if type(df_div_freqs) != pd.DataFrame:
+    if df_div_freqs.empty:
         print(f"{in_data_path}weekly_divhistory_report/ {in_date} Failed")
         return su.FAILURE
     # only want div freq with symbols
@@ -256,7 +256,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
       #  return -1
     #print(dfs2)
     df_prices = se.get_ticker_price_history_yahoo_local(in_data_path+'price_history/', in_market, in_ticker)
-    if type(df_prices) != pd.DataFrame:
+    if df_prices.empty:
         print(f"{in_data_path}price_history/ {in_market} {in_ticker} - Failure")
         return su.FAILURE
    
@@ -265,7 +265,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # TRANSFORM
 
     result = st.generate_yield_history(df_divs, df_div_freqs, df_prices, in_ticker)
-    if(type(result) != pd.DataFrame):
+    if result.empty:
         print(f"df_divs {df_divs} : df_div_freqs {df_div_freqs} : df_prices {df_prices} : in_ticker {in_ticker}")
         return su.FAILURE
     

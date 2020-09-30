@@ -38,13 +38,13 @@ def get_ticker_summary_divhistory(in_market: str):
     
     if not (in_market in su.MARKETS):
         print('in_market must be one of tsx, nyse, nasdaq')
-        return su.FAILURE
+        return pd.DataFrame()
     
     try:
         dfs = pd.read_html(f'https://dividendhistory.org/{in_market}', keep_default_na=False, header=0, index_col=0)
     except HTTPError as err:
         print(f"Could not get TSX ticks: HTTP Code: {err.code}  Path Tried: {err.url}")
-        return su.FAILURE
+        return pd.DataFrame()
     df = dfs[0]
     df['Exchange'] = "TSX"
     df['ex-div epoch'] = df.apply (lambda x: int(((datetime.datetime.strptime(x['Next Ex-div Date'], "%Y-%m-%d")).timestamp())*1000), axis=1)
@@ -73,7 +73,7 @@ def get_div_history_DH(in_sym, in_market):
     # extract module for pulling dividend history given ticker
     if not is_in_exchange_DH(in_sym, in_market):
         print(f"{in_sym} is not in {in_market} on dividendhistory")
-        return su.FAILURE
+        return pd.DataFrame()
     
     in_sym = in_sym.replace('.', '_')
     if in_market in ('nyse', 'nasdaq'):
@@ -85,7 +85,7 @@ def get_div_history_DH(in_sym, in_market):
         dfs = pd.read_html(url_str)
     except:
         print(f"Could not get {in_market} Div History for {in_sym}")
-        return su.FAILURE    
+        return pd.DataFrame()  
             
     # small decision block to deal with optional anoucements header on some pages
     if len(dfs)==3:
@@ -132,7 +132,7 @@ def get_DH_weekly_report(in_market, in_date:date):
     # check if date is a friday as reports are only published on Fridays
     if su.is_friday(in_date)==su.FAILURE:
         print("DH reports are only published on Fridays - check your date")
-        return su.FAILURE
+        return pd.DataFrame()
     # validate market 
     if in_market in ('nyse', 'nasdaq'):
         market = 'USA'
@@ -140,7 +140,7 @@ def get_DH_weekly_report(in_market, in_date:date):
         market = 'CAN'
     else:
         print(f'Market {in_market} not valid')
-        return su.FAILURE
+        return pd.DataFrame()
     
     #data_file_path = "{1}weekly_divhistory_reports/{0}/".format(market, in_file_path)
     web_path = 'https://dividendhistory.org/reports/{3}/{2}-{1}-{0}-report.htm'.format(in_date.strftime("%d"), in_date.strftime("%m"), in_date.year, market)
@@ -152,7 +152,7 @@ def get_DH_weekly_report(in_market, in_date:date):
         #printProgressBar(i + 1, len(fridays), prefix = '{0} Weekly Report Progress:'.format(market), suffix = 'Complete', length = 50)
     except HTTPError as err:
         print(f"Path not found: {err.url}: Code: {err.code}")
-        return su.FAILURE
+        return pd.DataFrame()
         #write_file = False
     
     # take first DataFrame in list 
@@ -214,17 +214,18 @@ def get_DH_weekly_report(in_market, in_date:date):
 #   OR
 #   in_period = spec AND requires at least in_start str 'YYYY-MM-DD'
 #   no in_end specified will default to today
+# returns DataFrame
 
 def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *xargs, **kwargs):
     
     
     if in_market not in su.MARKETS: 
         print('market must be one of TSX, NYSE, or NASDAQ')
-        return su.FAILURE
+        return pd.DataFrame()
     
     if not is_in_exchange_DH(in_sym, in_market):
         print(f'ticker not in exchange {in_sym} is not in {in_market}')
-        return su.FAILURE
+        return pd.DataFrame()
     
     
     # convert standard ticker to yahoo ticker notation
@@ -239,7 +240,7 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
                 end = date.today() # use yesterday as enddate by default. enddate in yfinance in non-inclusive
         else:
             print('You need to provide a start date with spec')
-            return su.FAILURE
+            return pd.DataFrame()
     
     
     # PREP
@@ -269,13 +270,13 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
 
 # grab divdidend history for ticker from local csv
 # original source dividendhistory.org
-# 
+# returns DataFrame
 # EXTRACT
 def get_DH_div_history_local(in_data_path:str, in_ticker:str, in_market:str):
     
     if in_market not in su.MARKETS:
         print("Market must be one of tsx, nyse. nasdaq")
-        return su.FAILURE
+        return pd.DataFrame()
     
     try:
         data_file_path = in_data_path
@@ -286,7 +287,7 @@ def get_DH_div_history_local(in_data_path:str, in_ticker:str, in_market:str):
         #make_dir(div_path)
     except:
         print(f"Could not find {data_file_path}{in_market}/DH_div_history_{in_ticker}.csv")
-        return su.FAILURE
+        return pd.DataFrame()
     return dfs
 
 # grab weekly DH report from local data store csv
@@ -298,10 +299,10 @@ def get_DH_weekly_report_local(in_data_path:str, in_market:str, in_date:date):
     
     if in_market not in su.MARKETS:
         print("Market must be one of tsx, nyse. nasdaq")
-        return su.FAILURE
+        return pd.DataFrame()
     if not su.is_friday(in_date) or in_date > datetime.datetime.today():
         print("Date must be a Friday in the past")
-        return su.FAILURE
+        return pd.DataFrame()
     
     try:
         if in_market == 'tsx':
@@ -311,17 +312,18 @@ def get_DH_weekly_report_local(in_data_path:str, in_market:str, in_date:date):
         #dfs.drop(columns=["Name", "Price", "Yld", "Ex-Div", "PayRto", "PE", "PB", "Beta", "Mkt Cap", "WK%", "MO%", "2MO%", "3MO%", "6MO%", "1YR%", "report_date_epoch", "ex_div_epoch"], inplace=True)
     except:
         print(f'Could not find weekly report for {in_market}')
-        return su.FAILURE
+        return pd.DataFrame()
     return dfs
 
 # grab price history for ticker
 # in_data_path is full path to directory containing price recrords from yahoo
-    # EXTRACT
+# returns DataFrame    
+# EXTRACT
 def get_ticker_price_history_yahoo_local(in_data_path:str, in_market:str, in_ticker:str):
     
     if in_market not in su.MARKETS:
         print("Market must be one of tsx, nyse. nasdaq")
-        return su.FAILURE
+        return pd.DataFrame()
     
     try:
         #if in_market == 'tsx':
@@ -335,7 +337,7 @@ def get_ticker_price_history_yahoo_local(in_data_path:str, in_market:str, in_tic
         #print(dfs2)
     except:
         print(f"{in_data_path}yahoo_price_history_{in_ticker}_{in_market}.csv - Failed")
-        return su.FAILURE
+        return pd.DataFrame()
     #print(dfs2)
     return dfs
 
