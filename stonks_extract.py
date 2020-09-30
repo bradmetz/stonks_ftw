@@ -257,7 +257,9 @@ def get_ticker_price_history_yahoo(in_sym: str, in_market:str, in_period:str, *x
     else:
         df = curr_tick.history(start=start, end=end, auto_adjust=False)
     if df.empty is False:
-        df['symbol'] = in_sym.replace('.TO', '')
+        in_sym = in_sym.replace('-', '.')
+        in_sym = in_sym.replace('.TO', '')
+        df['symbol'] = in_sym
         df['market'] = in_market
         df = df.reset_index()
         df['date_epoch'] = df.apply (lambda x: int(x['Date'].timestamp())*1000, axis=1)

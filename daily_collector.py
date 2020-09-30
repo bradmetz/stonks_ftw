@@ -55,8 +55,13 @@ def main():
    # update historic dividend records
    # still lazy method of redownload the entire dataset
     if divs is True:
-        sf.get_div_histories_DH(LOCAL_DATASET_PATH)      
+        sf.get_div_histories_DH(LOCAL_DATASET_PATH)    
     
+    if yields is True:
+        for exc in su.MARKETS:
+            errors = sf.generate_and_save_all_yield_histories(exc, LOCAL_DATASET_PATH)
+            print(f"Errors generating yield history {exc} : {errors}")
+
     return 0
     
 def parse_args():
@@ -64,8 +69,9 @@ def parse_args():
     global price
     global divs
     global weekly
+    global yields
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "t:hpwd", ["help", "temp=", "price", "divs", "weekly"])
+        opts, args = getopt.getopt(sys.argv[1:], "t:hpwdy", ["help", "temp=", "price", "divs", "weekly", "yield"])
     except getopt.GetoptError:
         usage()
     for o, a in opts:
@@ -83,6 +89,9 @@ def parse_args():
         if o in ('-d', '--divs'):
             divs=True
             print("getting dividend updates")
+        if o in ('-y', '--yield'):
+            yields=True
+            print("Calculating yield\ updates")
             
     #su.make_dir(data_file_path)
     

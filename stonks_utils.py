@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  5 19:54:22 2020
 
-@author: brad
+stonks_utils - a collection of general functions used across modules
+    Helper functions to deal with dates (default class for dates is 
+                                         datetime.date())
+
 """
 
 import pandas as pd
@@ -11,10 +13,7 @@ import calendar, datetime, os, sys
 import numpy as np
 import yfinance as yf
 from datetime import date
-from datetime import timedelta
 from dateutil.relativedelta import relativedelta, FR
-import stonks_extract as se
-import stonks_output as so
 import stonks_utils as su
 
 
@@ -389,7 +388,7 @@ def next_weekday(d, weekday):
     return (d + datetime.timedelta(days_ahead))
 
 def get_last_friday():
-    return (date.today() + relativedelta(weekday=FR(-1))).date()    
+    return date.today() + relativedelta(weekday=FR(-1))   
 
 # assumes a date format YYYY-MM-DD 
 def str_date_to_epoch(in_date_str):

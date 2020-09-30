@@ -47,13 +47,22 @@ def generate_yield_history(in_df_divs:pd.DataFrame, in_df_div_freqs:pd.DataFrame
             yield_factor = 0
     except:
         print("Error getting freq")
-        return su.FAILURE
+        return pd.DataFrame()
     
     
     # yield calculation
-    result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Close']
+    #print(result)
+    #print(result['Close'])
+    #print(result['Cash Amount'])
+    #print(in_ticker)
+    try:
+        result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Close']
+        result = result[result['Daily Yield'].notna()]
+    except:
+        print(f"Error calculating yield for {in_ticker}")
+        return pd.DataFrame()
+        #pass
     # remove historic price records with no div
-    result = result[result['Daily Yield'].notna()]
     
     return result
 
