@@ -226,6 +226,7 @@ def daily_yield_calc_history(in_market: str, in_data_path: str, in_ticker):
     # join datasets on date and fill dividends down 
 
     result = st.generate_yield_history(df_divs, df_div_freqs, df_prices, in_ticker)
+    #print(result)
     if result.empty:
         print(f"Error getting result for in_ticker {in_ticker}")
         return su.FAILURE
