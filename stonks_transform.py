@@ -15,6 +15,48 @@ from scipy.signal import find_peaks
 from pandas import DataFrame
 import datetime
 
+import stonks_utils as su
+
+# inputs 3 dataframes from DH_div_history, DH_weekly_reports, yahoo_price_history
+# outputs dataframe with yield history
+
+def generate_yield_history(in_df_divs:pd.DataFrame, in_df_div_freqs:pd.DataFrame, in_df_prices:pd.DataFrame, in_ticker:str):
+    
+    in_df_div_freqs.drop(columns=["Name", "Price", "Yld", "Ex-Div", "PayRto", "PE", "PB", "Beta", "Mkt Cap", "WK%", "MO%", "2MO%", "3MO%", "6MO%", "1YR%", "report_date_epoch", "ex_div_epoch"], inplace=True)
+    
+    in_df_divs.rename(columns={'Ex-Dividend Date':'Date'}, inplace=True)
+    result = pd.merge(in_df_divs, in_df_prices, on=['Date'], how='outer')
+    result.sort_values(by='Date', inplace=True)
+    result.fillna(method='ffill', inplace=True)
+    result.drop(columns=['Open', 'High', 'Low', 'Dividends', 'symbol', 'market', 'date_epoch', 'Stock Splits'], inplace=True)
+    
+    try:
+        # frequency factor
+        freq = in_df_div_freqs.loc[in_df_div_freqs['Symbol'] == in_ticker]
+        #print(freq)
+        if freq.iloc[0]['div_freq'] == 'Q':
+            yield_factor = 4
+        elif freq.iloc[0]['div_freq'] == 'S':
+            yield_factor = 2
+        elif freq.iloc[0]['div_freq'] == 'M':
+            yield_factor = 12
+        elif freq.iloc[0]['div_freq'] == 'A':
+            yield_factor = 1
+        else:
+            # ignoring U and - for now
+            yield_factor = 0
+    except:
+        print("Error getting freq")
+        return su.FAILURE
+    
+    
+    # yield calculation
+    result['Daily Yield'] = yield_factor*result['Cash Amount']/result['Close']
+    # remove historic price records with no div
+    result = result[result['Daily Yield'].notna()]
+    
+    return result
+
 # model parameters
 #    prom - prominence for peak detection
 #    (optional) date_range - number of years to go back when building model (default=max)
