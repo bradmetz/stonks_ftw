@@ -74,22 +74,26 @@ def dl_and_write_DH_reports(in_file_path, in_market, *args, **kwargs):
             print("No fridays returned")
             return su.FAILURE
     
-    
-    if update==True:
-        fridays = su.fridays_since_last_DH_report(in_file_path, in_market)
-        if len(fridays)<1:
-            print("no new fridays returned on update")
-            return su.FAILURE
-    
     if in_market in ('nyse', 'nasdaq'):
         in_country = 'USA'
         in_file_path += 'USA/'
     elif in_market == 'tsx':
         in_country = 'CAN'
         in_file_path += 'CAN/'
+    elif in_market in ('CAN', 'USA'):
+        in_country = in_market
     else:
         print("Market {in_market} is invalid")
         return se.FAILURE
+    
+    if update==True:
+        fridays = su.fridays_since_last_DH_report(in_file_path, in_country)
+        if len(fridays)<1:
+            print("no new fridays returned on update")
+            return su.FAILURE
+    
+    
+    
     
     # download reports for all fridays in fridays stonks_extract
     # write out using stonks_output
@@ -103,9 +107,9 @@ def dl_and_write_DH_reports(in_file_path, in_market, *args, **kwargs):
         df = se.get_DH_weekly_report(in_market, fri)
         
         # OUTPUT
-        if df.empty() is True:
+        if df.empty:
             print(f"no report for {in_market} on {fri.year}-{fri.month}-{fri.day}")
-        elif so.df_to_csv(df, in_file_path, f"div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv", False)==su.FAILURE:
+        elif so.df_to_csv(df, in_file_path+f'{in_country}/', f"div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv", False)==su.FAILURE:
             print(f"Error writing div_history_report-{in_country}-{fri.year}-{fri.month}-{fri.day}.csv")
     return su.SUCCESS
 
