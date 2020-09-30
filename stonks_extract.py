@@ -149,7 +149,7 @@ def get_DH_weekly_report(in_market, in_date:date):
      
     
     # check if date is a friday as reports are only published on Fridays
-    if su.is_friday(in_date)==False:
+    if not su.is_friday(in_date):
         print("DH reports are only published on Fridays - check your date")
         return pd.DataFrame()
     # validate market 
