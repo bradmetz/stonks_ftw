@@ -25,14 +25,10 @@ def generate_yield_history(in_df_divs:pd.DataFrame, in_df_div_freqs:pd.DataFrame
     in_df_div_freqs.drop(columns=["Name", "Price", "Yld", "Ex-Div", "PayRto", "PE", "PB", "Beta", "Mkt Cap", "WK%", "MO%", "2MO%", "3MO%", "6MO%", "1YR%", "report_date_epoch", "ex_div_epoch"], inplace=True)
     
     in_df_divs.rename(columns={'Ex-Dividend Date':'Date'}, inplace=True)
-    #print(in_df_divs)
-    #print(in_df_prices)
     result = pd.merge(in_df_divs, in_df_prices, on=['Date'], how='outer')
     result.sort_values(by='Date', inplace=True)
     result.fillna(method='ffill', inplace=True)
     result.drop(columns=['Open', 'High', 'Low', 'Dividends', 'symbol', 'market', 'date_epoch', 'Stock Splits'], inplace=True)
-    #print(result)
-    
     
     try:
         # frequency factor
@@ -53,20 +49,6 @@ def generate_yield_history(in_df_divs:pd.DataFrame, in_df_div_freqs:pd.DataFrame
         print("Error getting freq")
         return pd.DataFrame()
     
-    
-    # yield calculation
-    #print(result)
-    #print(result['Close'])
-    #print(result['Cash Amount'])
-    #print(in_ticker)
-    
-    #for i in result['Close']:
-     #   if type(i) == str:
-      #      print(i)
-        #else:
-         #   print('im a number')
-    #print(yield_factor)
-    
     try:
         result['Cash Amount'] = pd.to_numeric(result['Cash Amount'], downcast="float")
         result['Close'] = pd.to_numeric(result['Close'], downcast="float")
@@ -75,8 +57,6 @@ def generate_yield_history(in_df_divs:pd.DataFrame, in_df_div_freqs:pd.DataFrame
     except:
         print(f"Error calculating yield for {in_ticker}")
         return pd.DataFrame()
-        #pass
-    # remove historic price records with no div
     
     return result
 

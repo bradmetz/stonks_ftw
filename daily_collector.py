@@ -19,9 +19,7 @@ options to consider
         -w --weekly : grab weekly DH reports since last collection date 
 
 """
-import sys, getopt
-#import pandas as pd
-#from datetime import date, timedelta 
+import sys, getopt 
 import stonks_utils as su
 import stonks_extract as se
 import stonks_flows as sf
@@ -29,7 +27,6 @@ import stonks_flows as sf
 LOCAL_DATASET_PATH = "./datasets/"
 
 def main():
-    
     
     global price
     global weekly
@@ -75,9 +72,6 @@ def parse_args():
     except getopt.GetoptError:
         usage()
     for o, a in opts:
-        #if o in ("-t", "--temp"):
-         #   data_file_path = str(a)
-          #  print("Data file path: {}".format(data_file_path))
         if o in ("-h", "--help"):
             usage()
         if o in ("-p", "--price"):
@@ -92,8 +86,6 @@ def parse_args():
         if o in ('-y', '--yield'):
             yields=True
             print("Calculating yield\ updates")
-            
-    #su.make_dir(data_file_path)
     
 def usage():
     print ('-----------------------------------------------------------')

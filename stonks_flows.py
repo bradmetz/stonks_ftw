@@ -91,10 +91,6 @@ def dl_and_write_DH_reports(in_file_path, in_market, *args, **kwargs):
         if len(fridays)<1:
             print("no new fridays returned on update")
             return su.FAILURE
-    
-    
-    
-    
     # download reports for all fridays in fridays stonks_extract
     # write out using stonks_output
     i=0

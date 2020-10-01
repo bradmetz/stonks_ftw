@@ -204,11 +204,7 @@ def get_DH_weekly_report(in_market, in_date:date):
         
     return df
 
-
-
-
 # --------------------- REMOTE EXTRACTIONS Yahoo ----------------------------
-
 
 # get and parse price history from yahoo_finance for given ticker 
 # and given date range
