@@ -12,6 +12,7 @@ I am taking on this project more as a learning experience than to make money but
 My collector code is in a pretty good state pulling in various datasets from dividendhistory.org and yahoo finance (using yfinance).  Daily yields are being calculated as part of initialization and some initial work on peak and valley detection has been done in notebook.  Next step is to optimize peak and valley detection to find optimal buy and sell points.  The model I am using to start is to average out peak and valley values for dividend yield to identify buy and sell points for all dividend stocks.  
 
 # Future ideas
+  - add in a postgres backend to get away from basing all workflows on text files
   - work on dash enabled dash board and plotly based visualizations
   - generate model files for each ticker offline using total and 10 year histories 
   - consider generating model on the fly to allow for parameter tuning
